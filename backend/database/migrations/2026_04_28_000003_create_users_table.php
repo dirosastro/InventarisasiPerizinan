@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('nama');
             $table->string('email')->unique();
             $table->string('password');
-            $table->enum('role', ['admin', 'ppk', 'satker', 'pimpinan'])->default('satker');
+            $table->string('role')->default('satker');
             $table->foreignId('satker_id')->nullable()->constrained('satker')->onDelete('set null');
             $table->timestamps();
         });

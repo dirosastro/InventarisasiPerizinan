@@ -7,6 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- xlsx-js-style for Styled Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+    <!-- jsPDF & jsPDF-AutoTable for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
@@ -50,11 +57,15 @@
                 <i class="ph-fill ph-file-text text-xl"></i>
                 <span class="font-bold text-sm">Daftar Perizinan</span>
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
-                <i class="ph ph-users-three text-xl group-hover:text-accent"></i>
-                <span class="font-semibold text-sm">Manajemen User</span>
-            </a>
+            <div id="admin-menu" class="hidden">
+                <a href="manajemen_user.html" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
+                    <i class="ph ph-users-three text-xl group-hover:text-accent"></i>
+                    <span class="font-semibold text-sm">Manajemen User</span>
+                </a>
+            </div>
         </nav>
+
+
 
         <div class="p-4 border-t border-gray-50">
             <div class="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
@@ -62,13 +73,47 @@
                     <i class="ph ph-user text-xl"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold text-gray-900 truncate">Admin BPJN</p>
+                    <p class="text-xs font-bold text-gray-900 truncate user-name-display">Admin BPJN</p>
                     <p class="text-[10px] text-gray-500 truncate">Administrator</p>
                 </div>
-                <button class="text-gray-400 hover:text-red-500"><i class="ph ph-sign-out"></i></button>
+                <button onclick="logout()" class="text-gray-400 hover:text-red-500"><i class="ph ph-sign-out"></i></button>
             </div>
         </div>
     </aside>
+
+    <script>
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userRole');
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const userRole = localStorage.getItem('userRole');
+            const adminMenu = document.getElementById('admin-menu');
+
+            if (!isLoggedIn) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Self-healing untuk sesi lama
+            if (isLoggedIn && !userRole) {
+                localStorage.setItem('userRole', 'superadmin');
+                window.location.reload();
+            }
+
+            if (isLoggedIn && userRole === 'superadmin' && adminMenu) {
+                adminMenu.classList.remove('hidden');
+            }
+
+            // Tampilkan nama user yang login
+            const userName = localStorage.getItem('userName') || 'Admin BPJN';
+            const nameElements = document.querySelectorAll('.user-name-display');
+            nameElements.forEach(el => el.innerText = userName);
+        });
+    </script>
 
     <!-- Main Content -->
     <main class="flex-1 ml-64 p-8">
@@ -81,7 +126,10 @@
                     <p class="text-sm text-gray-500 mt-1">Kelola data permohonan izin pemanfaatan bagian-bagian jalan.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button class="bg-white border border-gray-200 text-gray-700 px-4 py-2 text-sm font-medium rounded-lg shadow-sm hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                    <a href="test_wa.html" class="bg-green-50 text-green-700 border border-green-200 px-4 py-2 text-sm font-medium rounded-lg shadow-sm hover:bg-green-100 flex items-center gap-2 transition-colors">
+                        <i class="ph ph-whatsapp-logo"></i> Test Bot
+                    </a>
+                    <button id="export-btn" class="bg-white border border-gray-200 text-gray-700 px-4 py-2 text-sm font-medium rounded-lg shadow-sm hover:bg-gray-50 flex items-center gap-2 transition-colors">
                         <i class="ph ph-export"></i> Export
                     </button>
                     <a href="admin.html" class="bg-accent text-white px-4 py-2 text-sm font-medium rounded-lg shadow-sm hover:bg-blue-700 flex items-center gap-2 transition-colors">
@@ -112,6 +160,16 @@
                         <option value="newest">Terbaru</option>
                         <option value="oldest">Terlama</option>
                     </select>
+
+                    <div class="w-[1px] h-4 bg-gray-200 mx-1"></div>
+
+                    <span class="text-xs text-gray-500">Tampilkan:</span>
+                    <select id="items-per-page" class="px-3 py-2 text-sm border-none bg-transparent font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer hover:bg-gray-50 rounded-lg">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
                 </div>
             </div>
 
@@ -125,9 +183,10 @@
                                 <th class="px-5 py-4 font-semibold w-[15%]">Nomor Izin & Tgl</th>
                                 <th class="px-5 py-4 font-semibold w-[20%]">Pemohon & Jenis Izin</th>
                                 <th class="px-5 py-4 font-semibold w-[20%]">Ruas Jalan / Lokasi</th>
-                                <th class="px-5 py-4 font-semibold w-[15%] text-right">Total PNBP</th>
-                                <th class="px-5 py-4 font-semibold w-[15%] text-center">Status</th>
-                                <th class="px-5 py-4 font-semibold w-[10%] text-center">Aksi</th>
+                                <th class="px-5 py-4 font-semibold w-[12%] text-right">Total PNBP</th>
+                                <th class="px-5 py-4 font-semibold w-[10%]">Kontak</th>
+                                <th class="px-5 py-4 font-semibold w-[12%] text-center">Status</th>
+                                <th class="px-5 py-4 font-semibold w-[6%] text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="tabel-perizinan" class="divide-y divide-gray-100">
@@ -157,6 +216,80 @@
     </main>
 
     <!-- DELETE MODAL -->
+
+    <!-- WA NOTIF CONFIRM MODAL -->
+    <div id="wa-confirm-modal" class="fixed inset-0 z-[70] flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-fade-in-up">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-600 to-green-500 px-6 py-4 flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <i class="ph-fill ph-whatsapp-logo text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-lg">Kirim Notifikasi WhatsApp</h3>
+                    <p class="text-green-100 text-xs">Konfirmasi sebelum mengirim pesan ke pemohon</p>
+                </div>
+                <button id="wa-cancel-btn" class="ml-auto text-white/70 hover:text-white transition-colors">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Info Penerima -->
+            <div class="px-6 pt-5 pb-3">
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Pemohon</p>
+                        <p id="wa-modal-pemohon" class="text-sm font-bold text-gray-800 truncate">-</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">No. HP</p>
+                        <p id="wa-modal-no-hp" class="text-sm font-bold text-green-700">-</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Nomor Izin</p>
+                        <p id="wa-modal-no-izin" class="text-sm font-medium text-gray-700 truncate">-</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Tgl Berakhir</p>
+                        <p id="wa-modal-tgl-akhir" class="text-sm font-medium text-gray-700 truncate">-</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Sisa Waktu</p>
+                        <p id="wa-modal-sisa" class="text-sm font-bold text-blue-600">-</p>
+                    </div>
+                </div>
+
+                <!-- Preview Pesan -->
+                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="bg-gray-100 px-4 py-2 flex items-center gap-2 border-b border-gray-200">
+                        <i class="ph ph-chat-text text-gray-500 text-sm"></i>
+                        <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">Preview Pesan</span>
+                    </div>
+                    <div class="bg-[#ECE5DD] p-4 max-h-48 overflow-y-auto custom-scrollbar">
+                        <div class="bg-white rounded-lg rounded-tl-none px-4 py-3 shadow-sm max-w-[90%]">
+                            <pre id="wa-modal-preview" class="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed"></pre>
+                            <p class="text-[9px] text-gray-400 text-right mt-2 font-medium">Bot Siperjalan ✓✓</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3 justify-end">
+                <button id="wa-cancel-btn-bottom" onclick="document.getElementById('wa-confirm-modal').classList.add('hidden')"
+                    class="px-5 py-2.5 text-sm font-semibold text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors">
+                    Batal
+                </button>
+                <button id="wa-send-btn"
+                    class="px-6 py-2.5 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-200 transition-all flex items-center gap-2">
+                    <i class="ph ph-paper-plane-tilt"></i> Kirim Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE MODAL -->
     <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"></div>
@@ -181,14 +314,70 @@
         </div>
     </div>
 
-    <script>
-        const API_URL = 'http://localhost:8000/api/perizinan';
-        let allPerizinanData = [];
-        let allRuasNames = [];
+    <!-- EXPORT MODAL -->
+    <div id="export-modal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500/50 backdrop-blur-sm"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-8 py-5 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-800">Opsi Ekspor Data</h3>
+                    <button id="close-export-modal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-8 space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tahun Terbit</label>
+                        <select id="export-tahun" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-gray-50 font-medium">
+                            <option value="all">Semua Tahun</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Jenis Perizinan</label>
+                        <select id="export-jenis" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-gray-50 font-medium">
+                            <option value="all">Semua Jenis</option>
+                            <option value="Izin Penempatan Jaringan Utilitas">Jaringan Utilitas (Kabel/Pipa)</option>
+                            <option value="Izin Penempatan Iklan/Reklame">Iklan & Reklame</option>
+                            <option value="Akses Jalan Keluar/Masuk">Akses Jalan</option>
+                            <option value="dispensasi">Dispensasi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ruas Jalan</label>
+                        <select id="export-ruas" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-gray-50 font-medium">
+                            <option value="all">Semua Ruas Jalan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-8 py-5 flex justify-end gap-3">
+                    <button id="cancel-export" class="px-6 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors">Batal</button>
+                    <button id="confirm-export-pdf" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-100 transition-all flex items-center gap-2">
+                        <i class="ph ph-file-pdf text-lg"></i> Download PDF
+                    </button>
+                    <button id="confirm-export" class="px-8 py-3 bg-accent hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-100 transition-all flex items-center gap-2">
+                        <i class="ph ph-file-xls text-lg"></i> Download XLSX
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/api/perizinan';
+        let allPerizinanData = [];
+        let filteredPerizinanData = [];
+        let allRuasNames = [];
+        
+        // Pagination State
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        
         async function fetchRuasJalan() {
             try {
-                const response = await fetch('http://localhost:8000/api/ruas-jalan');
+                const response = await fetch('http://127.0.0.1:8000/api/ruas-jalan');
                 const result = await response.json();
                 if (result.success) {
                     allRuasNames = [...new Set(result.data.map(r => r.nama_ruas))].sort();
@@ -207,28 +396,53 @@
 
                 if (result.success) {
                     allPerizinanData = result.data;
-                    renderTable(allPerizinanData);
+                    filteredPerizinanData = [...allPerizinanData]; // Initial filter is all data
+                    currentPage = 1;
+                    renderTable();
                 } else {
                     console.error("Gagal mengambil data: ", result.message);
-                    tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-red-500">Gagal memuat data dari server.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-4 text-center text-red-500">Gagal memuat data dari server.</td></tr>`;
                 }
 
             } catch (error) {
                 console.error('Error saat fetch API:', error);
-                tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-red-500">Terjadi kesalahan jaringan. Pastikan Laravel Backend sudah berjalan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-4 text-center text-red-500">Terjadi kesalahan jaringan. Pastikan Laravel Backend sudah berjalan.</td></tr>`;
             }
         }
 
-        function renderTable(data) {
+        function renderTable() {
             const tbody = document.getElementById('tabel-perizinan');
             tbody.innerHTML = '';
 
+            const data = filteredPerizinanData;
+            
+            // Simpan semua data ke map agar bisa diakses by ID dari onclick
+            window._permitMap = {};
+            allPerizinanData.forEach(p => { window._permitMap[p.id] = p; });
+            
             if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-gray-500">Tidak ada data yang sesuai dengan kriteria pencarian.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-4 text-center text-gray-500">Tidak ada data yang sesuai dengan kriteria pencarian.</td></tr>`;
+                updatePaginationInfo(0, 0, 0);
+                renderPagination(0);
                 return;
             }
 
-            data.forEach((item, index) => {
+            // Calculate Pagination
+            const totalItems = data.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            
+            // Ensure currentPage is valid
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const paginatedData = data.slice(startIndex, endIndex);
+
+            updatePaginationInfo(startIndex + 1, endIndex, totalItems);
+            renderPagination(totalPages);
+
+            paginatedData.forEach((item, index) => {
                 const tglTerbit = new Date(item.tanggal_terbit).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                 
                 let statusBadge = '';
@@ -252,7 +466,7 @@
                 tr.className = 'hover:bg-gray-50 transition-colors group';
                 
                 tr.innerHTML = `
-                    <td class="px-5 py-4 text-center text-gray-500">${index + 1}</td>
+                    <td class="px-5 py-4 text-center text-gray-500">${startIndex + index + 1}</td>
                     <td class="px-5 py-4">
                         <div class="font-medium text-gray-800">${item.nomor_izin}</div>
                         <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
@@ -261,7 +475,10 @@
                     </td>
                     <td class="px-5 py-4">
                         <div class="font-semibold text-primary">${item.pemohon}</div>
-                        <div class="text-xs text-gray-600 bg-gray-100 inline-block px-2 py-0.5 rounded mt-1 uppercase">Izin ${(item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin}</div>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            <span class="text-[10px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded uppercase font-medium">Izin ${(item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin}</span>
+                            <span class="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase font-bold border border-blue-100">${item.satker ? item.satker.nama_satker : 'Satker Tidak Diketahui'}</span>
+                        </div>
                     </td>
                     <td class="px-5 py-4">
                         <div class="font-medium text-gray-700">
@@ -291,6 +508,24 @@
                         <div class="font-medium text-gray-800">${formatRupiah(item.pnbp || 0)}</div>
                         <div class="text-[10px] text-gray-500 mt-1">Cek Detail</div>
                     </td>
+                    <td class="px-5 py-4">
+                        <div class="flex flex-col gap-1.5">
+                            <div class="text-xs font-bold text-gray-700">${item.no_hp || '-'}</div>
+                            ${item.no_hp ? `
+                            <div class="flex items-center gap-1">
+                                <a href="https://wa.me/${item.no_hp.replace(/[^\d]/g, '').replace(/^0/, '62')}" target="_blank"
+                                    class="inline-flex items-center gap-1 text-[10px] font-bold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2 py-1 rounded-md border border-green-200 transition-colors"
+                                    title="Buka Chat WhatsApp">
+                                    <i class="ph-fill ph-whatsapp-logo text-sm"></i> Chat
+                                </a>
+                                <button onclick="kirimNotifWA(${item.id})"
+                                    class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:bg-blue-600 hover:text-white bg-blue-50 px-2 py-1 rounded-md border border-blue-200 transition-colors"
+                                    title="Kirim Notifikasi via Bot">
+                                    <i class="ph ph-paper-plane-tilt text-sm"></i> Notif
+                                </button>
+                            </div>` : ''}
+                        </div>
+                    </td>
                     <td class="px-5 py-4 text-center">
                         ${statusBadge}
                     </td>
@@ -309,11 +544,75 @@
             });
         }
 
+        function updatePaginationInfo(start, end, total) {
+            const infoArea = document.querySelector('.text-xs.text-gray-500');
+            if (infoArea) {
+                infoArea.innerHTML = `Menampilkan <span class="font-medium text-gray-700">${start}</span> sampai <span class="font-medium text-gray-700">${end}</span> dari <span class="font-medium text-gray-700">${total}</span> data`;
+            }
+        }
+
+        function renderPagination(totalPages) {
+            const paginationContainer = document.querySelector('.flex.gap-1');
+            if (!paginationContainer) return;
+
+            paginationContainer.innerHTML = '';
+
+            // Previous Button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = `px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`;
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.innerHTML = '<i class="ph ph-caret-left"></i>';
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            };
+            paginationContainer.appendChild(prevBtn);
+
+            // Page Numbers
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                if (i === currentPage) {
+                    pageBtn.className = "px-3 py-1.5 border-none bg-accent text-white rounded font-medium text-sm shadow-sm";
+                } else {
+                    pageBtn.className = "px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded hover:bg-gray-50 transition-colors text-sm";
+                }
+                pageBtn.innerText = i;
+                pageBtn.onclick = () => {
+                    currentPage = i;
+                    renderTable();
+                };
+                paginationContainer.appendChild(pageBtn);
+            }
+
+            // Next Button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = `px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors ${currentPage === totalPages || totalPages === 0 ? 'opacity-50 cursor-not-allowed' : ''}`;
+            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+            nextBtn.innerHTML = '<i class="ph ph-caret-right"></i>';
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            };
+            paginationContainer.appendChild(nextBtn);
+        }
+
         function filterData() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
             const jenisValue = document.getElementById('filter-jenis').value;
 
-            const filteredData = allPerizinanData.filter(item => {
+            filteredPerizinanData = allPerizinanData.filter(item => {
                 // Filter Jenis
                 let matchJenis = true;
                 if (jenisValue !== '') {
@@ -338,13 +637,14 @@
 
             // Sort Data
             const sortOrder = document.getElementById('sort-order').value;
-            filteredData.sort((a, b) => {
+            filteredPerizinanData.sort((a, b) => {
                 const dateA = new Date(a.tanggal_terbit);
                 const dateB = new Date(b.tanggal_terbit);
                 return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
             });
 
-            renderTable(filteredData);
+            currentPage = 1;
+            renderTable();
         }
 
         // Event Listeners
@@ -368,6 +668,188 @@
             filterData();
         });
         document.getElementById('filter-jenis').addEventListener('change', filterData);
+        document.getElementById('items-per-page').addEventListener('change', (e) => {
+            itemsPerPage = parseInt(e.target.value);
+            currentPage = 1;
+            renderTable();
+        });
+
+        // ====================================================
+        // KIRIM NOTIFIKASI VIA BOT WHATSAPP
+        // ====================================================
+        const WA_BOT_URL = 'http://127.0.0.1:8000/api/wa-test';
+
+        // Toast Notification
+        function showToast(message, type = 'success') {
+            const existing = document.getElementById('wa-toast');
+            if (existing) existing.remove();
+
+            const colors = {
+                success: 'bg-green-600',
+                error:   'bg-red-600',
+                loading: 'bg-blue-600'
+            };
+            const icons = {
+                success: 'ph-check-circle',
+                error:   'ph-x-circle',
+                loading: 'ph-circle-notch animate-spin'
+            };
+
+            const toast = document.createElement('div');
+            toast.id = 'wa-toast';
+            toast.className = `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl text-white text-sm font-semibold ${colors[type]} transition-all duration-300 opacity-0`;
+            toast.innerHTML = `<i class="ph ${icons[type]} text-xl"></i><span>${message}</span>`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.style.opacity = '1', 10);
+            if (type !== 'loading') {
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+            }
+            return toast;
+        }
+
+        // Format tanggal Indonesia
+        function formatTglID(dateStr) {
+            if (!dateStr) return '-';
+            const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            const d = new Date(dateStr);
+            return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+        }
+
+        // Hitung sisa hari
+        function hitungSisaHari(dateStr) {
+            if (!dateStr) return null;
+            const akhir = new Date(dateStr);
+            const sekarang = new Date();
+            sekarang.setHours(0,0,0,0);
+            return Math.ceil((akhir - sekarang) / (1000 * 60 * 60 * 24));
+        }
+
+        // Build pesan notifikasi berdasarkan sisa hari
+        function buildPesanNotif(item) {
+            const jenis      = (item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin;
+            const tglFormat  = formatTglID(item.tanggal_akhir);
+            const ruasJalan  = item.lokasi ? item.lokasi.map(l => l.nama_ruas_jalan).filter(Boolean).join(', ') : '-';
+            const sisaHari   = hitungSisaHari(item.tanggal_akhir);
+
+            // Early Warning (H-90 atau H-60) — tone formal
+            if (sisaHari !== null && sisaHari >= 60) {
+                return `📋 *PEMBERITAHUAN AWAL — MASA BERLAKU IZIN*\n\n` +
+                       `Yth. *${item.pemohon}*,\n\n` +
+                       `Kami dari *Balai Pelaksanaan Jalan Nasional (BPJN) NTB* mengingatkan bahwa ` +
+                       `izin pemanfaatan ruang milik jalan Anda akan berakhir dalam *${sisaHari} hari* ` +
+                       `ke depan (pada tanggal *${tglFormat}*).\n\n` +
+                       `📌 *Nomor Izin:* ${item.nomor_izin}\n` +
+                       `📌 *Jenis Izin:* ${jenis}\n` +
+                       `📌 *Ruas Jalan:* ${ruasJalan}\n` +
+                       `📌 *Masa Berlaku Berakhir:* ${tglFormat}\n\n` +
+                       `Jika Anda masih memerlukan izin tersebut, kami menyarankan untuk ` +
+                       `*segera mempersiapkan dokumen perpanjangan* agar proses dapat berjalan ` +
+                       `tepat waktu sebelum izin berakhir.\n\n` +
+                       `📞 Untuk informasi lebih lanjut, silakan menghubungi kantor BPJN NTB.\n\n` +
+                       `Terima kasih atas perhatian dan kerja samanya.\n\n` +
+                       `_Pesan ini dikirim otomatis oleh Sistem Informasi Perizinan Siperjalan BPJN NTB._`;
+            }
+
+            // Urgent (H-30 ke bawah)
+            const urgencyIcon = sisaHari !== null
+                ? (sisaHari <= 1 ? '🚨' : sisaHari <= 7 ? '⚠️' : sisaHari <= 14 ? '🔔' : '📢')
+                : '📢';
+            const sisaLabel = sisaHari !== null ? `*${sisaHari} hari lagi*` : 'segera';
+            const urgentNote = sisaHari !== null && sisaHari <= 7
+                ? `⚡ *Mohon segera menghubungi kantor BPJN NTB* untuk proses perpanjangan sebelum izin berakhir.\n\n`
+                : `Mohon segera melakukan permohonan perpanjangan jika masih diperlukan.\n\n`;
+
+            return `${urgencyIcon} *PERINGATAN MASA BERLAKU IZIN — ${sisaHari !== null ? sisaHari + ' HARI LAGI' : 'SEGERA'}*\n\n` +
+                   `Yth. *${item.pemohon}*,\n\n` +
+                   `Kami menginformasikan bahwa izin pemanfaatan bagian-bagian jalan Anda:\n` +
+                   `📌 *Nomor Izin:* ${item.nomor_izin}\n` +
+                   `📌 *Jenis:* ${jenis}\n` +
+                   `📌 *Ruas Jalan:* ${ruasJalan}\n` +
+                   `📌 *Tgl Berakhir:* ${tglFormat}\n\n` +
+                   `Akan berakhir dalam ${sisaLabel}.\n\n` +
+                   urgentNote +
+                   `Terima kasih.\n\n` +
+                   `_Pesan ini dikirim otomatis oleh Sistem Siperjalan BPJN NTB._`;
+        }
+
+        // Kirim notifikasi — tampilkan konfirmasi dulu
+        let pendingNotifItem = null;
+
+        function kirimNotifWA(permitId) {
+            const item = window._permitMap ? window._permitMap[permitId] : null;
+            if (!item) {
+                showToast('Data perizinan tidak ditemukan.', 'error');
+                return;
+            }
+            pendingNotifItem = item;
+            const sisaHari  = hitungSisaHari(item.tanggal_akhir);
+            const tglFormat = formatTglID(item.tanggal_akhir);
+
+            // Isi modal konfirmasi
+            document.getElementById('wa-modal-pemohon').textContent  = item.pemohon;
+            document.getElementById('wa-modal-no-hp').textContent    = item.no_hp;
+            document.getElementById('wa-modal-no-izin').textContent  = item.nomor_izin;
+            document.getElementById('wa-modal-tgl-akhir').textContent = tglFormat;
+
+            const sisaEl = document.getElementById('wa-modal-sisa');
+            if (sisaHari !== null) {
+                sisaEl.textContent = `${sisaHari} hari lagi`;
+                sisaEl.className = sisaHari <= 7 ? 'font-bold text-red-600' : sisaHari <= 30 ? 'font-bold text-yellow-600' : 'font-bold text-blue-600';
+            } else {
+                sisaEl.textContent = 'Sudah kadaluarsa';
+                sisaEl.className = 'font-bold text-gray-500';
+            }
+
+            // Preview pesan
+            document.getElementById('wa-modal-preview').textContent = buildPesanNotif(item);
+
+            document.getElementById('wa-confirm-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('wa-cancel-btn').addEventListener('click', () => {
+            document.getElementById('wa-confirm-modal').classList.add('hidden');
+            pendingNotifItem = null;
+        });
+
+        document.getElementById('wa-send-btn').addEventListener('click', async () => {
+            if (!pendingNotifItem) return;
+
+            const btn = document.getElementById('wa-send-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Mengirim...';
+            document.getElementById('wa-confirm-modal').classList.add('hidden');
+
+            const toast = showToast('Mengirim notifikasi WhatsApp...', 'loading');
+
+            const message = buildPesanNotif(pendingNotifItem);
+
+            try {
+                const response = await fetch(WA_BOT_URL, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ number: pendingNotifItem.no_hp, message })
+                });
+                const result = await response.json();
+
+                toast.remove();
+                if (response.ok && result.success) {
+                    showToast(`✅ Notifikasi berhasil dikirim ke ${pendingNotifItem.no_hp}`, 'success');
+                } else {
+                    showToast(`Gagal mengirim: ${result.message || result.error || 'Error tidak diketahui'}`, 'error');
+                }
+            } catch (err) {
+                toast.remove();
+                showToast('Gagal menghubungi server. Pastikan Laravel dan Bot WA sudah berjalan.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> Kirim Sekarang';
+                pendingNotifItem = null;
+            }
+        });
 
         let permitIdToDelete = null;
 
@@ -412,9 +894,260 @@
             }
         });
 
+        // Export Modal Control
+        const exportModal = document.getElementById('export-modal');
+        const exportBtn = document.getElementById('export-btn');
+        const closeExportModal = document.getElementById('close-export-modal');
+        const cancelExport = document.getElementById('cancel-export');
+        const confirmExport = document.getElementById('confirm-export');
+
+        exportBtn.addEventListener('click', () => {
+            if (!allPerizinanData || allPerizinanData.length === 0) {
+                alert('Tidak ada data untuk diekspor.');
+                return;
+            }
+            populateExportOptions();
+            exportModal.classList.remove('hidden');
+        });
+
+        function populateExportOptions() {
+            const tahunSelect = document.getElementById('export-tahun');
+            const ruasSelect = document.getElementById('export-ruas');
+            
+            const tahunSet = new Set();
+            const ruasSet = new Set();
+
+            allPerizinanData.forEach(item => {
+                if (item.tanggal_terbit) {
+                    const year = item.tanggal_terbit.split('-')[0];
+                    tahunSet.add(year);
+                }
+                if (item.lokasi) {
+                    item.lokasi.forEach(loc => ruasSet.add(loc.nama_ruas_jalan));
+                }
+            });
+
+            // Populate Tahun
+            tahunSelect.innerHTML = '<option value="all">Semua Tahun</option>';
+            [...tahunSet].sort((a,b) => b-a).forEach(y => {
+                tahunSelect.innerHTML += `<option value="${y}">${y}</option>`;
+            });
+
+            // Populate Ruas
+            ruasSelect.innerHTML = '<option value="all">Semua Ruas Jalan</option>';
+            [...ruasSet].sort().forEach(r => {
+                ruasSelect.innerHTML += `<option value="${r}">${r}</option>`;
+            });
+        }
+
+        [closeExportModal, cancelExport].forEach(el => {
+            el.addEventListener('click', () => exportModal.classList.add('hidden'));
+        });
+
+        confirmExport.addEventListener('click', () => {
+            const filterTahun = document.getElementById('export-tahun').value;
+            const filterJenis = document.getElementById('export-jenis').value;
+            const filterRuas = document.getElementById('export-ruas').value;
+
+            let filteredData = allPerizinanData.filter(item => {
+                const matchTahun = filterTahun === 'all' || (item.tanggal_terbit && item.tanggal_terbit.startsWith(filterTahun));
+                
+                let matchJenis = filterJenis === 'all';
+                if (filterJenis !== 'all') {
+                    if (filterJenis === 'dispensasi') matchJenis = item.jenis_izin === 'dispensasi';
+                    else matchJenis = item.jenis_izin === filterJenis;
+                }
+
+                let matchRuas = filterRuas === 'all';
+                if (filterRuas !== 'all' && item.lokasi) {
+                    matchRuas = item.lokasi.some(l => l.nama_ruas_jalan === filterRuas);
+                }
+
+                return matchTahun && matchJenis && matchRuas;
+            });
+
+            if (filteredData.length === 0) {
+                alert('Tidak ada data yang sesuai dengan filter pilihan Anda.');
+                return;
+            }
+
+            // --- MODERN STYLED EXPORT ---
+            const header = ["NO", "NOMOR IZIN", "TANGGAL TERBIT", "PEMOHON", "JENIS PERIZINAN", "SUB JENIS", "SATKER / PPK", "RUAS JALAN", "PNBP (Rp)", "KONTAK (WA)", "STATUS"];
+            const rows = filteredData.map((item, index) => [
+                index + 1,
+                item.nomor_izin,
+                item.tanggal_terbit,
+                item.pemohon,
+                item.jenis_izin,
+                item.sub_jenis || '-',
+                item.satker ? item.satker.nama_satker : '-',
+                item.lokasi ? item.lokasi.map(l => l.nama_ruas_jalan).join(', ') : '-',
+                parseFloat(item.pnbp || 0),
+                item.no_hp || '-',
+                item.status.toUpperCase()
+            ]);
+
+            const wsData = [header, ...rows];
+            const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+
+            // Apply Styles to Cells
+            const range = XLSX.utils.decode_range(worksheet['!ref']);
+            
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const address = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!worksheet[address]) continue;
+
+                    // Base Style
+                    worksheet[address].s = {
+                        font: { name: "Arial", sz: 10 },
+                        alignment: { vertical: "center", horizontal: "left", wrapText: true },
+                        border: {
+                            top: { style: "thin", color: { rgb: "E5E7EB" } },
+                            bottom: { style: "thin", color: { rgb: "E5E7EB" } },
+                            left: { style: "thin", color: { rgb: "E5E7EB" } },
+                            right: { style: "thin", color: { rgb: "E5E7EB" } }
+                        }
+                    };
+
+                    // Header Style (Row 0)
+                    if (R === 0) {
+                        worksheet[address].s = {
+                            fill: { fgColor: { rgb: "1E3A8A" } }, // Navy Blue
+                            font: { color: { rgb: "FFFFFF" }, bold: true, sz: 11 },
+                            alignment: { horizontal: "center", vertical: "center" },
+                            border: {
+                                top: { style: "thin", color: { rgb: "000000" } },
+                                bottom: { style: "thin", color: { rgb: "000000" } }
+                            }
+                        };
+                    } else {
+                        // Zebra Striping for Body
+                        if (R % 2 === 0) {
+                            worksheet[address].s.fill = { fgColor: { rgb: "F9FAFB" } };
+                        }
+                        
+                        // Center align for specific columns
+                        if (C === 0 || C === 2 || C === 10) {
+                            worksheet[address].s.alignment.horizontal = "center";
+                        }
+                        
+                        // PNBP Formatting (Column 8)
+                        if (C === 8) {
+                            worksheet[address].z = '#,##0';
+                            worksheet[address].s.alignment.horizontal = "right";
+                        }
+
+                        // Status Color highlight (Column 10)
+                        if (C === 10) {
+                            const status = worksheet[address].v;
+                            let color = "6B7280"; // Gray
+                            if (status === 'AKTIF') color = "059669"; // Green
+                            if (status === 'HAMPIR_HABIS') color = "D97706"; // Orange
+                            if (status === 'KADALUARSA') color = "DC2626"; // Red
+                            worksheet[address].s.font.color = { rgb: color };
+                            worksheet[address].s.font.bold = true;
+                        }
+                    }
+                }
+            }
+
+            // Set Column Widths
+            worksheet['!cols'] = [
+                { wch: 6 },  // No
+                { wch: 25 }, // Nomor Izin
+                { wch: 15 }, // Tanggal
+                { wch: 35 }, // Pemohon
+                { wch: 30 }, // Jenis
+                { wch: 20 }, // Sub Jenis
+                { wch: 30 }, // Satker
+                { wch: 45 }, // Ruas Jalan
+                { wch: 18 }, // PNBP
+                { wch: 18 }, // No HP
+                { wch: 15 }  // Status
+            ];
+
+            // Set Row Heights
+            worksheet['!rows'] = [{ hpt: 30 }]; // Header height
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Perizinan");
+            
+            XLSX.writeFile(workbook, `Rekap_Perizinan_${new Date().toISOString().split('T')[0]}.xlsx`);
+            exportModal.classList.add('hidden');
+        });
+
+        // Confirm Export PDF
+        document.getElementById('confirm-export-pdf').addEventListener('click', () => {
+            const filterTahun = document.getElementById('export-tahun').value;
+            const filterJenis = document.getElementById('export-jenis').value;
+            const filterRuas = document.getElementById('export-ruas').value;
+
+            const filteredData = allPerizinanData.filter(item => {
+                const matchTahun = filterTahun === 'all' || (item.tanggal_terbit && item.tanggal_terbit.startsWith(filterTahun));
+                let matchJenis = filterJenis === 'all';
+                if (filterJenis !== 'all') {
+                    if (filterJenis === 'dispensasi') matchJenis = item.jenis_izin === 'dispensasi';
+                    else matchJenis = item.jenis_izin === filterJenis;
+                }
+                let matchRuas = filterRuas === 'all';
+                if (filterRuas !== 'all' && item.lokasi) {
+                    matchRuas = item.lokasi.some(l => l.nama_ruas_jalan === filterRuas);
+                }
+                return matchTahun && matchJenis && matchRuas;
+            });
+
+            if (filteredData.length === 0) {
+                alert('Tidak ada data yang sesuai dengan filter pilihan Anda.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+
+            // Add Title
+            doc.setFontSize(18);
+            doc.setTextColor(30, 58, 138); // Navy
+            doc.text("LAPORAN REKAPITULASI PERIZINAN JALAN", 148, 20, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 148, 27, { align: 'center' });
+
+            // Prepare Table Data
+            const body = filteredData.map((item, index) => [
+                index + 1,
+                item.nomor_izin,
+                item.tanggal_terbit,
+                item.pemohon,
+                item.jenis_izin,
+                item.satker ? item.satker.nama_satker : '-',
+                item.lokasi ? item.lokasi.map(l => l.nama_ruas_jalan).join(', ') : '-',
+                new Intl.NumberFormat('id-ID').format(item.pnbp || 0),
+                item.status.toUpperCase()
+            ]);
+
+            doc.autoTable({
+                startY: 35,
+                head: [["NO", "NOMOR IZIN", "TGL TERBIT", "PEMOHON", "JENIS IZIN", "SATKER", "RUAS JALAN", "PNBP (Rp)", "STATUS"]],
+                body: body,
+                theme: 'striped',
+                headStyles: { fillColor: [30, 58, 138], textColor: 255, halign: 'center' },
+                styles: { fontSize: 8, cellPadding: 3 },
+                columnStyles: {
+                    0: { halign: 'center', cellWidth: 10 },
+                    7: { halign: 'right' },
+                    8: { halign: 'center' }
+                }
+            });
+
+            doc.save(`Rekap_Perizinan_${new Date().toISOString().split('T')[0]}.pdf`);
+            exportModal.classList.add('hidden');
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             const tbody = document.getElementById('tabel-perizinan');
-            tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-gray-500">Memuat data dari database...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-4 text-center text-gray-500">Memuat data dari database...</td></tr>`;
             fetchPerizinan();
             fetchRuasJalan();
         });

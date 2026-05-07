@@ -1,0 +1,84 @@
+================================================================================
+          DOKUMEN SOLUSI DIGITAL SISTEM INFORMASI SIPERJALAN (BPJN NTB)
+================================================================================
+
+I. MASALAH: MONITORING MASA BERLAKU IZIN YANG LEMAH
+   SOLUSI: EARLY WARNING SYSTEM & OTOMASI STATUS
+   - Otomasi Tracking: Sistem secara cerdas mengklasifikasikan izin yang 
+     masih aktif, hampir habis (tenggang waktu), dan kadaluarsa.
+   - Dashboard Eksekutif: Memberikan pandangan cepat bagi pimpinan mengenai 
+     perizinan yang memerlukan tindakan segera (monitoring real-time).
+
+II. MASALAH: KESULITAN VERIFIKASI LOKASI PERIZINAN DI LAPANGAN
+    SOLUSI: SISTEM INFORMASI GEOGRAFIS (SIG) TERINTEGRASI
+    - Visualisasi Spasial: Memetakan lokasi utilitas/izin secara visual di 
+      atas peta Jalan Nasional untuk menghindari tumpang tindih pemanfaatan.
+    - Presisi Teknis: Menyediakan data koordinat (7 desimal) untuk validasi 
+      lapangan yang akurat, mengurangi risiko kesalahan lokasi.
+    - Survei Virtual (Street View): Mengurangi biaya survei lapangan dengan 
+      fitur navigasi Street View yang dilengkapi animasi presisi tinggi.
+
+III. MASALAH: PENGELOLAAN ARSIP DATA YANG TIDAK TERSTRUKTUR
+     SOLUSI: MANAJEMEN BASIS DATA TERPUSAT & PENCARIAN PINTAR
+     - Pusat Data Terintegrasi: Menghilangkan risiko kehilangan data karena 
+       arsip fisik yang terselip.
+     - Pencarian Instan: Menemukan data perizinan dalam hitungan detik 
+       berdasarkan nama pemohon, nomor izin, atau nama ruas jalan.
+     - Skalabilitas Data: Mampu mengelola ribuan data perizinan dengan sistem 
+       Pagination yang ringan dan responsif.
+
+IV. MASALAH: PROSES PELAPORAN MANUAL YANG MEMAKAN WAKTU
+    SOLUSI: DIGITALISASI PELAPORAN (ONE-CLICK REPORTING)
+    - Ekspor Laporan Instan: Menghasilkan rekapitulasi data dalam format 
+      Excel (.xlsx) dan PDF yang rapi secara otomatis.
+    - Standardisasi Laporan: Menghilangkan human-error dalam pembuatan 
+      laporan rekapitulasi untuk kebutuhan audit maupun manajerial.
+
+V. MASALAH: HAMBATAN KOMUNIKASI DENGAN PEMOHON/PETUGAS
+   SOLUSI: INTEGRASI WHATSAPP BOT & DIRECT CHAT
+   - Notifikasi Proaktif: Mengirimkan pengingat perpanjangan izin secara 
+     otomatis kepada pemohon melalui WhatsApp.
+   - Koordinasi Cepat: Memfasilitasi komunikasi langsung via "One-Click WA 
+     Chat" untuk penyelesaian masalah teknis di lapangan dengan cepat.
+
+VI. MASALAH: CITRA PELAYANAN PUBLIK YANG KURANG MODERN
+    SOLUSI: USER EXPERIENCE (UX) & ESTETIKA PREMIUM
+    - Antarmuka Modern: Memberikan kesan profesionalitas instansi melalui 
+      landing page dan dashboard dengan estetika premium.
+    - Aksesibilitas Fleksibel: Sistem dapat diakses dengan nyaman melalui 
+      perangkat desktop maupun tablet untuk koordinasi di mana saja.
+
+--------------------------------------------------------------------------------
+VII. TEKNOLOGI YANG DIGUNAKAN (TECH STACK)
+--------------------------------------------------------------------------------
+
+1. FRONTEND & UI/UX:
+   - Core: HTML5 & JavaScript (Vanilla ES6+).
+   - Styling: CSS3 & TailwindCSS untuk tata letak modern dan responsif.
+   - Ikonografi: Phosphor Icons (Library ikon premium & clean).
+   - Tipografi: Google Fonts - Inter (Standar profesional aplikasi modern).
+
+2. GEOSPATIAL & MAPPING (SIG):
+   - Leaflet.js: Engine peta utama yang ringan dan performa tinggi.
+   - Turf.js: Library untuk pemrosesan spasial dan analisis geometri.
+   - Proj4Leaflet: Integrasi sistem proyeksi koordinat (UTM/WGS84).
+   - Google Street View API: Integrasi survei virtual 360 derajat.
+
+3. BACKEND & DATA MANAGEMENT:
+   - Framework: Laravel (PHP) sebagai penyedia RESTful API.
+   - Database: MySQL untuk penyimpanan data relasional yang stabil.
+   - Server: Apache (via XAMPP Environment).
+
+4. PELAPORAN & EKSPOR DATA:
+   - SheetJS (XLSX): Engine pengolahan spreadsheet di sisi client.
+   - xlsx-js-style: Library kustom untuk pewarnaan dan styling file Excel.
+   - jsPDF & AutoTable: Engine pembuatan dokumen PDF secara dinamis.
+
+5. INTEGRASI & OTOMASI:
+   - Node.js (Bot WA): Engine untuk bot notifikasi otomatis.
+   - WhatsApp Web API Integration: Jalur komunikasi otomatis ke pemohon.
+
+--------------------------------------------------------------------------------
+Siperjalan - Solusi Digital Pemanfaatan Jalan Nasional BPJN NTB
+Update: 07 Mei 2026
+--------------------------------------------------------------------------------

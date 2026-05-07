@@ -10,6 +10,15 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Nonaktifkan foreign key checks untuk truncate
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('satker')->truncate();
+        DB::table('ppk')->truncate();
+        DB::table('ruas_jalan')->truncate();
+        DB::table('perizinan')->truncate();
+        DB::table('perizinan_lokasi')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
         // 1. Seed Satker (3 Satker)
         $satker1 = DB::table('satker')->insertGetId([
             'nama_satker' => 'Satker PJN Wilayah I Provinsi NTB',
@@ -68,79 +77,119 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // 4. Seed Perizinan (tanpa ppk_id & nama_ruas_jalan)
-        $iz1 = DB::table('perizinan')->insertGetId([
-            'nomor_izin'     => 'IZN/BPJN-NTB/2025/0045',
-            'jenis_izin'     => 'izin',
-            'sub_jenis'      => 'Izin Penempatan Jaringan Utilitas',
-            'pemohon'        => 'PT. Telekomunikasi Indonesia',
-            'satker_id'      => $satker1,
-            'tanggal_terbit' => '2025-01-15',
-            'tanggal_akhir'  => '2026-01-15',
-            'status'         => 'aktif',
-            'created_at'     => Carbon::now(),
-            'updated_at'     => Carbon::now(),
-        ]);
-
-        $iz2 = DB::table('perizinan')->insertGetId([
-            'nomor_izin'     => 'IZN/BPJN-NTB/2025/0042',
-            'jenis_izin'     => 'izin',
-            'sub_jenis'      => 'Izin Penempatan Jaringan Utilitas',
-            'pemohon'        => 'PDAM Giri Menang',
-            'satker_id'      => $satker1,
-            'tanggal_terbit' => '2025-01-12',
-            'tanggal_akhir'  => '2025-02-12',
-            'status'         => 'hampir_habis',
-            'created_at'     => Carbon::now(),
-            'updated_at'     => Carbon::now(),
-        ]);
-
-        $iz3 = DB::table('perizinan')->insertGetId([
-            'nomor_izin'     => 'IZN/BPJN-NTB/2025/0038',
-            'jenis_izin'     => 'izin',
-            'sub_jenis'      => 'Izin Penempatan Iklan/Reklame',
-            'pemohon'        => 'CV. Advertising Jaya',
-            'satker_id'      => $satker2,
-            'tanggal_terbit' => '2025-01-08',
-            'tanggal_akhir'  => '2026-01-08',
-            'status'         => 'aktif',
-            'created_at'     => Carbon::now(),
-            'updated_at'     => Carbon::now(),
-        ]);
-
-        $iz4 = DB::table('perizinan')->insertGetId([
-            'nomor_izin'     => 'IZN/BPJN-NTB/2025/0035',
-            'jenis_izin'     => 'rekomendasi',
-            'sub_jenis'      => 'Akses Jalan Keluar/Masuk',
-            'pemohon'        => 'PT. PLN Persero',
-            'satker_id'      => $satker3,
-            'tanggal_terbit' => '2025-01-05',
-            'tanggal_akhir'  => '2026-01-05',
-            'status'         => 'aktif',
-            'created_at'     => Carbon::now(),
-            'updated_at'     => Carbon::now(),
-        ]);
-
-        // 5. Seed perizinan_lokasi
-        $lokasi = [
-            // iz1: PT. Telkom mencakup 2 ruas (lintas PPK)
-            ['perizinan_id'=>$iz1,'satker_id'=>$satker1,'ppk_id'=>$ppk11,'nama_ruas_jalan'=>'PRAYA - SP. PENUJAK','sta_awal'=>'Km 12+500','sta_akhir'=>'Km 13+000'],
-            ['perizinan_id'=>$iz1,'satker_id'=>$satker1,'ppk_id'=>$ppk12,'nama_ruas_jalan'=>'KOPANG - BTS. KOTA PRAYA','sta_awal'=>'Km 25+100','sta_akhir'=>'Km 26+000'],
-            // iz2: PDAM 1 ruas
-            ['perizinan_id'=>$iz2,'satker_id'=>$satker1,'ppk_id'=>$ppk11,'nama_ruas_jalan'=>'MATARAM - GERUNG','sta_awal'=>'Km 5+000','sta_akhir'=>'Km 6+500'],
-            // iz3: Reklame 1 ruas
-            ['perizinan_id'=>$iz3,'satker_id'=>$satker2,'ppk_id'=>$ppk21,'nama_ruas_jalan'=>'SIMPANG NEGARA - TALIWANG','sta_awal'=>'Km 2+300','sta_akhir'=>'Km 2+300'],
-            // iz4: PLN 3 ruas (lintas satker & ppk)
-            ['perizinan_id'=>$iz4,'satker_id'=>$satker3,'ppk_id'=>$ppk31,'nama_ruas_jalan'=>'TANAH AWU - SENGKOL','sta_awal'=>'Km 8+200','sta_akhir'=>'Km 9+000'],
-            ['perizinan_id'=>$iz4,'satker_id'=>$satker3,'ppk_id'=>$ppk32,'nama_ruas_jalan'=>'SP. BANGGO - KEMPO','sta_awal'=>'Km 15+000','sta_akhir'=>'Km 17+000'],
-            ['perizinan_id'=>$iz4,'satker_id'=>$satker1,'ppk_id'=>$ppk13,'nama_ruas_jalan'=>'REMPUNG - LABUHAN LOMBOK','sta_awal'=>'Km 1+000','sta_akhir'=>'Km 2+000'],
+        // 4. Seed Perizinan (Lebih Lengkap)
+        $izData = [
+            [
+                'nomor_izin'     => 'IZN/BPJN-NTB/2025/0045',
+                'jenis_izin'     => 'izin',
+                'sub_jenis'      => 'Izin Penempatan Jaringan Utilitas',
+                'pemohon'        => 'PT. Telekomunikasi Indonesia',
+                'satker_id'      => $satker1,
+                'tanggal_terbit' => '2025-01-15',
+                'tanggal_akhir'  => '2026-01-15',
+                'status'         => 'aktif',
+                'icon'           => 'ph-wifi-high',
+                'pnbp'           => 15000000,
+            ],
+            [
+                'nomor_izin'     => 'IZN/BPJN-NTB/2025/0042',
+                'jenis_izin'     => 'izin',
+                'sub_jenis'      => 'Izin Penempatan Jaringan Utilitas',
+                'pemohon'        => 'PDAM Giri Menang',
+                'satker_id'      => $satker1,
+                'tanggal_terbit' => '2025-01-12',
+                'tanggal_akhir'  => '2025-02-12',
+                'status'         => 'hampir_habis',
+                'icon'           => 'ph-drop',
+                'pnbp'           => 5000000,
+            ],
+            [
+                'nomor_izin'     => 'IZN/BPJN-NTB/2025/0038',
+                'jenis_izin'     => 'izin',
+                'sub_jenis'      => 'Izin Penempatan Iklan/Reklame',
+                'pemohon'        => 'CV. Advertising Jaya',
+                'satker_id'      => $satker2,
+                'tanggal_terbit' => '2025-01-08',
+                'tanggal_akhir'  => '2026-01-08',
+                'status'         => 'aktif',
+                'icon'           => 'ph-signpost',
+                'pnbp'           => 12500000,
+            ],
+            [
+                'nomor_izin'     => 'REK/BPJN-NTB/2025/0012',
+                'jenis_izin'     => 'rekomendasi',
+                'sub_jenis'      => 'Akses Jalan Keluar/Masuk',
+                'pemohon'        => 'SPBU 54.832.01 Mataram',
+                'satker_id'      => $satker1,
+                'tanggal_terbit' => '2025-02-20',
+                'tanggal_akhir'  => '2030-02-20',
+                'status'         => 'aktif',
+                'icon'           => 'ph-car',
+                'pnbp'           => 0,
+            ],
+            [
+                'nomor_izin'     => 'DIS/BPJN-NTB/2025/0005',
+                'jenis_izin'     => 'dispensasi',
+                'sub_jenis'      => '-',
+                'pemohon'        => 'PT. Transportasi Maju',
+                'satker_id'      => $satker3,
+                'tanggal_terbit' => '2025-03-01',
+                'tanggal_akhir'  => '2025-03-07',
+                'status'         => 'aktif',
+                'icon'           => 'ph-truck',
+                'pnbp'           => 2500000,
+            ],
+            [
+                'nomor_izin'     => 'IZN/BPJN-NTB/2024/0099',
+                'jenis_izin'     => 'izin',
+                'sub_jenis'      => 'Izin Penempatan Jaringan Utilitas',
+                'pemohon'        => 'PT. PLN (Persero) UIW NTB',
+                'satker_id'      => $satker2,
+                'tanggal_terbit' => '2024-05-10',
+                'tanggal_akhir'  => '2025-05-10',
+                'status'         => 'hampir_habis',
+                'icon'           => 'ph-lightning',
+                'pnbp'           => 8750000,
+            ],
+            [
+                'nomor_izin'     => 'IZN/BPJN-NTB/2023/0150',
+                'jenis_izin'     => 'izin',
+                'sub_jenis'      => 'Izin Penempatan Iklan/Reklame',
+                'pemohon'        => 'Bank NTB Syariah',
+                'satker_id'      => $satker1,
+                'tanggal_terbit' => '2023-12-01',
+                'tanggal_akhir'  => '2024-12-01',
+                'status'         => 'kadaluarsa',
+                'icon'           => 'ph-signpost',
+                'pnbp'           => 20000000,
+            ],
         ];
 
-        foreach ($lokasi as $row) {
-            DB::table('perizinan_lokasi')->insert(array_merge($row, [
+        foreach ($izData as $data) {
+            $id = DB::table('perizinan')->insertGetId(array_merge($data, [
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]));
+
+            // Seed Lokasi Acak untuk setiap izin
+            if ($data['pemohon'] === 'PT. Telekomunikasi Indonesia') {
+                DB::table('perizinan_lokasi')->insert([
+                    ['perizinan_id'=>$id,'satker_id'=>$satker1,'ppk_id'=>$ppk11,'nama_ruas_jalan'=>'PRAYA - SP. PENUJAK','sta_awal'=>'Km 12+500','sta_akhir'=>'Km 13+000','created_at'=>now(),'updated_at'=>now()],
+                    ['perizinan_id'=>$id,'satker_id'=>$satker1,'ppk_id'=>$ppk12,'nama_ruas_jalan'=>'KOPANG - BTS. KOTA PRAYA','sta_awal'=>'Km 25+100','sta_akhir'=>'Km 26+000','created_at'=>now(),'updated_at'=>now()],
+                ]);
+            } elseif ($data['jenis_izin'] === 'dispensasi') {
+                DB::table('perizinan_lokasi')->insert([
+                    ['perizinan_id'=>$id,'satker_id'=>$satker3,'ppk_id'=>$ppk31,'nama_ruas_jalan'=>'TANAH AWU - SENGKOL','sta_awal'=>'Km 0+000','sta_akhir'=>'Km 15+000','created_at'=>now(),'updated_at'=>now()],
+                ]);
+            } elseif ($data['sub_jenis'] === 'Akses Jalan Keluar/Masuk') {
+                DB::table('perizinan_lokasi')->insert([
+                    ['perizinan_id'=>$id,'satker_id'=>$satker1,'ppk_id'=>$ppk11,'nama_ruas_jalan'=>'MATARAM - GERUNG','sta_awal'=>'Km 4+200','sta_akhir'=>'Km 4+200','created_at'=>now(),'updated_at'=>now()],
+                ]);
+            } else {
+                DB::table('perizinan_lokasi')->insert([
+                    ['perizinan_id'=>$id,'satker_id'=>$data['satker_id'],'ppk_id'=>$ppk11,'nama_ruas_jalan'=>'RUAS JALAN CONTOH','sta_awal'=>'Km 1+000','sta_akhir'=>'Km 1+500','created_at'=>now(),'updated_at'=>now()],
+                ]);
+            }
         }
     }
 }

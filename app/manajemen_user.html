@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <script>
+        // PROTEKSI HALAMAN: Hanya Super Admin yang bisa masuk
+        if (localStorage.getItem('isLoggedIn') !== 'true' || localStorage.getItem('userRole') !== 'superadmin') {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen User | Siperjalan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .text-primary { color: #0066FF; }
+        .bg-accent { background-color: #0066FF; }
+        
+        .animate-fade-in-up { 
+            animation: fadeInUp 0.4s ease-out forwards; 
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-100 flex flex-col fixed h-full z-20">
+        <div class="p-6 border-b border-gray-50 flex items-center gap-3">
+            <div class="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                <i class="ph-fill ph-road-horizon text-white text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-gray-900 tracking-tight leading-none">Siperjalan</h1>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">BPJN NTB</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1 mt-4">
+            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
+                <i class="ph ph-squares-four text-xl group-hover:text-accent"></i>
+                <span class="font-semibold text-sm">Dashboard</span>
+            </a>
+            <a href="peta.html" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
+                <i class="ph ph-map-trifold text-xl group-hover:text-accent"></i>
+                <span class="font-semibold text-sm">Peta Pemanfaatan</span>
+            </a>
+            <a href="perizinan.html" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
+                <i class="ph ph-file-text text-xl group-hover:text-accent"></i>
+                <span class="font-semibold text-sm">Daftar Perizinan</span>
+            </a>
+            <a href="manajemen_user.html" class="flex items-center gap-3 px-4 py-3 bg-blue-50 text-accent rounded-xl transition-all group">
+                <i class="ph-fill ph-users-three text-xl"></i>
+                <span class="font-bold text-sm">Manajemen User</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-50">
+            <div class="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-accent">
+                    <i class="ph ph-user text-xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-gray-900 truncate">Admin BPJN</p>
+                    <p class="text-[10px] text-gray-500 truncate">Administrator</p>
+                </div>
+                <button onclick="logout()" class="text-gray-400 hover:text-red-500"><i class="ph ph-sign-out"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 ml-64 p-8">
+        <div class="max-w-5xl mx-auto space-y-6">
+            
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Manajemen Pengguna</h1>
+                    <p class="text-sm text-gray-500 mt-1">Kelola akun akses sistem Siperjalan BPJN NTB.</p>
+                </div>
+                <button onclick="showModal()" class="bg-accent text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all flex items-center gap-2">
+                    <i class="ph ph-user-plus text-xl"></i> Tambah User Baru
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 border-b border-gray-100">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Nama User</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Username</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Level / Role</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table-body" class="divide-y divide-gray-50">
+                        <!-- Data Dummy/API akan muncul di sini -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL TAMBAH USER -->
+    <div id="user-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-black/20 backdrop-blur-sm" onclick="hideModal()"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 animate-fade-in-up">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Tambah Pengguna Baru</h2>
+            
+            <form id="user-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Nama Lengkap</label>
+                    <input type="text" id="full_name" required placeholder="Contoh: Budi Santoso" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Username</label>
+                    <input type="text" id="username" required placeholder="username_akses" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Password</label>
+                    <input type="password" id="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Level Akses</label>
+                    <select id="role" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all bg-gray-50">
+                        <option value="operator">Operator (Input Data)</option>
+                        <option value="viewer">Viewer (Hanya Lihat)</option>
+                        <option value="superadmin">Super Admin (Full Akses)</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="hideModal()" class="flex-1 px-4 py-3 rounded-xl font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-all">Batal</button>
+                    <button type="submit" class="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-accent hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all">Simpan User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/api/users';
+        let users = [];
+
+        async function fetchUsers() {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-10"><i class="ph ph-spinner animate-spin text-2xl"></i></td></tr>';
+            
+            try {
+                const response = await fetch(API_URL);
+                const result = await response.json();
+                if (result.success) {
+                    users = result.data;
+                    renderUsers();
+                }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-10 text-red-500">Gagal mengambil data dari database.</td></tr>';
+            }
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '';
+            users.forEach(user => {
+                const roleBadge = user.role === 'superadmin' || user.role === 'admin'
+                    ? '<span class="px-2 py-1 rounded-md bg-purple-50 text-purple-600 text-[10px] font-bold uppercase border border-purple-100">Super Admin</span>'
+                    : user.role === 'operator' || user.role === 'ppk'
+                    ? '<span class="px-2 py-1 rounded-md bg-blue-50 text-blue-600 text-[10px] font-bold uppercase border border-blue-100">Operator</span>'
+                    : '<span class="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-[10px] font-bold uppercase border border-gray-200">Viewer</span>';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-6 py-5 font-bold text-gray-700">${user.nama || user.full_name}</td>
+                        <td class="px-6 py-5 text-gray-500">${user.email || user.username}</td>
+                        <td class="px-6 py-5">${roleBadge}</td>
+                        <td class="px-6 py-5 text-center">
+                            ${(user.email !== 'admin' && user.username !== 'admin') ? `
+                                <button onclick="deleteUser(${user.id})" class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors">
+                                    <i class="ph ph-trash text-lg"></i>
+                                </button>
+                            ` : '<span class="text-gray-300 text-xs italic">System Locked</span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function showModal() { document.getElementById('user-modal').classList.remove('hidden'); }
+        function hideModal() { document.getElementById('user-modal').classList.add('hidden'); }
+
+        document.getElementById('user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            
+            btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Menyimpan...';
+            btn.disabled = true;
+
+            const payload = {
+                nama: document.getElementById('full_name').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    await fetchUsers();
+                    hideModal();
+                    e.target.reset();
+                    alert('User baru berhasil disimpan ke database!');
+                } else {
+                    alert(result.message || 'Gagal menyimpan user.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Terjadi kesalahan koneksi ke database.');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        async function deleteUser(id) {
+            if (confirm('Hapus akun ini secara permanen dari database?')) {
+                try {
+                    const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                    const result = await response.json();
+                    if (response.ok && result.success) {
+                        await fetchUsers();
+                    } else {
+                        alert(result.message);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Gagal menghapus user.');
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userRole');
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchUsers);
+    </script>
+</body>
+</html>

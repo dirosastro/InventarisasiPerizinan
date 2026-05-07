@@ -181,16 +181,107 @@ D. Riwayat:
 
 --------------------------------------------------
 
-6. TEKNOLOGI
-Frontend:
-- HTML / React / Next.js
-- Tailwind / Bootstrap
+6. TEKNOLOGI YANG DIGUNAKAN
 
-Peta:
-- Leaflet.js atau Mapbox GL JS
+====================================================
+A. FRONTEND (Antarmuka Pengguna)
+====================================================
 
-Backend:
-- Laravel atau Node.js
+  BAHASA & MARKUP:
+  - HTML5           : Struktur halaman utama (peta.html, admin.html, dll.)
+  - JavaScript (ES6+): Logika interaktif & manipulasi DOM
+  - CSS3            : Styling kustom & animasi
+
+  FRAMEWORK / LIBRARY CSS:
+  - Tailwind CSS (CDN v3): Utility-first styling pada semua halaman
+  - Google Fonts (Inter) : Tipografi utama
+
+  IKON:
+  - Phosphor Icons (@phosphor-icons/web): Ikon UI konsisten di seluruh halaman
+
+  BUILD TOOL:
+  - Vite v6.0          : Bundler & dev server untuk frontend
+
+====================================================
+B. PETA & GEOSPASIAL
+====================================================
+
+  - Leaflet.js v1.9.4  : Rendering peta interaktif berbasis web
+  - Proj4.js v2.9.0    : Konversi proyeksi koordinat (WGS84 ↔ UTM)
+  - Proj4Leaflet v1.0.2: Integrasi Proj4 dengan Leaflet
+  - Turf.js v6         : Geoprocessing (buffer, snapping, slicing, panjang segmen)
+  - GeoJSON            : Format data geospasial (titik, garis, poligon)
+
+  BASEMAP / TILE PROVIDER:
+  - OpenStreetMap (Streets)
+  - Esri World Imagery (Satellite)
+  - Esri Hybrid
+  - Esri World Topo (Terrain)
+
+====================================================
+C. BACKEND
+====================================================
+
+  FRAMEWORK:
+  - Laravel v12.x (PHP ^8.2): REST API & manajemen data perizinan
+
+  PAKET UTAMA:
+  - laravel/framework ^12.0 : Core framework
+  - laravel/tinker ^2.10.1  : REPL interaktif
+  - laravel/scheduler       : Penjadwalan tugas otomatis (cek kadaluarsa)
+
+  DEV TOOLS:
+  - PHPUnit ^11.5  : Unit testing
+  - Faker PHP ^1.23: Data dummy untuk testing
+  - Laravel Pint   : Code formatter PHP
+  - Laravel Sail   : Docker environment (opsional)
+
+====================================================
+D. DATABASE
+====================================================
+
+  - MySQL (via XAMPP): Database relasional utama
+  - Laravel Eloquent ORM: Abstraksi query & relasi antar tabel
+
+  TABEL UTAMA:
+  - users          : Data pengguna & role
+  - ppk            : Data Pejabat Pembuat Komitmen
+  - ruas_jalan     : Data ruas jalan nasional + GeoJSON
+  - perizinan      : Data izin (pemohon, jenis, masa berlaku, PNBP)
+
+====================================================
+E. BOT WHATSAPP (NOTIFIKASI OTOMATIS)
+====================================================
+
+  RUNTIME:
+  - Node.js (CommonJS): Runtime JavaScript server-side
+
+  LIBRARY:
+  - whatsapp-web.js v1.23.0: Integrasi WhatsApp Web Protocol
+  - Express.js v4.18.2     : HTTP server untuk endpoint trigger notifikasi
+  - qrcode v1.5.4          : Generate QR Code untuk autentikasi sesi WA
+  - body-parser v1.20.2    : Parse request body JSON
+
+====================================================
+F. LINGKUNGAN PENGEMBANGAN
+====================================================
+
+  - XAMPP          : Web server lokal (Apache + MySQL + PHP)
+  - PHP ^8.2       : Server-side scripting
+  - Composer       : Package manager PHP
+  - NPM / Node.js  : Package manager JavaScript
+  - Git            : Version control
+  - Vite           : Frontend dev server & HMR
+
+====================================================
+G. ARSITEKTUR SISTEM
+====================================================
+
+  - Pola Arsitektur : MVC (Model-View-Controller) via Laravel
+  - API             : RESTful JSON API (Laravel → Frontend HTML/JS)
+  - Autentikasi     : Session berbasis localStorage (JWT-ready)
+  - Notifikasi      : Laravel Scheduler + WhatsApp Bot (Node.js)
+  - Format Pertukaran Data: JSON & GeoJSON
 
 --------------------------------------------------
 

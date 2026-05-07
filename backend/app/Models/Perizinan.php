@@ -17,6 +17,7 @@ class Perizinan extends Model
         'sub_jenis',
         'icon',
         'pemohon',
+        'no_hp',
         'satker_id',
         'berkas',
         'pnbp',
@@ -28,5 +29,15 @@ class Perizinan extends Model
     public function lokasi()
     {
         return $this->hasMany(PerizinanLokasi::class, 'perizinan_id');
+    }
+
+    public function satker()
+    {
+        return $this->belongsTo(Satker::class, 'satker_id');
+    }
+
+    public function dokumen()
+    {
+        return $this->hasMany(Dokumen::class, 'perizinan_id');
     }
 }

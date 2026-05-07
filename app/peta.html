@@ -37,6 +37,83 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Street View Drag & Ripple Animation */
+        #pegman-icon.dragging {
+            opacity: 0.8;
+            color: #facc15 !important; /* Yellow-400 */
+            filter: drop-shadow(0 15px 20px rgba(0,0,0,0.6));
+            transition: all 0.2s ease;
+            cursor: grabbing;
+            animation: pegman-float 1.2s ease-in-out infinite;
+        }
+
+        @keyframes pegman-float {
+            0%, 100% { transform: scale(2) translateY(-15px); }
+            50% { transform: scale(2) translateY(-25px); }
+        }
+
+        /* Pulsing Target Pointer */
+        .drag-target-pointer {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            background: rgba(250, 204, 21, 0.2);
+            border: 2px solid #facc15;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: target-pulse 1s infinite;
+        }
+
+        .drag-target-pointer::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #facc15;
+            border-radius: 50%;
+        }
+
+        @keyframes target-pulse {
+            0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); }
+            70% { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 0 20px rgba(250, 204, 21, 0); }
+            100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+        }
+
+        .drop-ripple {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: rgba(250, 204, 21, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%) scale(1);
+            animation: ripple-out 0.8s cubic-bezier(0, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes ripple-out {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(8); opacity: 0; }
+        }
+
+        /* Sidebar Collapsed State */
+        #left-sidebar.sidebar-collapsed {
+            margin-left: -280px;
+        }
+
+        #left-sidebar.sidebar-collapsed #toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        #left-sidebar.sidebar-collapsed #toggle-sidebar {
+            right: -32px;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-['Inter'] h-screen overflow-hidden flex flex-col">
@@ -49,20 +126,24 @@
                 <img src="img/logo.png" alt="Logo" class="h-8 w-auto">
                 <span>Siperjalan</span>
             </div>
-
+            <!-- Navigation Links -->
             <nav class="hidden md:flex items-center gap-1 text-sm font-medium" id="nav-links">
                 <a href="index.html" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Beranda</a>
                 <a href="dashboard.html" id="nav-dashboard" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Dashboard Admin</a>
                 <a href="peta.html" class="px-3 py-2 rounded-md bg-secondary text-white transition-colors">Peta Pemanfaatan</a>
-                <a href="perizinan.html" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Data Perizinan</a>
+                <a href="perizinan.html" id="nav-perizinan" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Data Perizinan</a>
+                <a href="manajemen_user.html" id="admin-nav" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Manajemen User</a>
             </nav>
         </div>
 
         <div class="flex items-center gap-4">
             <div class="relative hidden sm:block">
-                <i class="ph ph-magnifying-glass"></i>
+                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 <input type="text" id="search-input" list="ruas-list" placeholder="Cari ruas / izin..."
-                    class="bg-secondary/50 text-white placeholder-gray-300 text-sm rounded-full pl-9 pr-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent w-[200px] transition-all">
+                    class="bg-secondary/50 text-white placeholder-gray-300 text-sm rounded-full pl-9 pr-10 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent w-[280px] transition-all">
+                <button id="clear-search" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white hidden transition-all">
+                    <i class="ph ph-x-circle text-lg"></i>
+                </button>
                 <datalist id="ruas-list"></datalist>
             </div>
 
@@ -73,17 +154,36 @@
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
                     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                    const navLinks = document.getElementById('nav-links');
+                    const userRole = localStorage.getItem('userRole');
                     const authSection = document.getElementById('auth-section');
+                    const adminNav = document.getElementById('admin-nav');
                     
+                    // Self-healing: Jika sudah login tapi role kosong, set sebagai superadmin (untuk sesi lama)
+                    if (isLoggedIn && !userRole) {
+                        localStorage.setItem('userRole', 'superadmin');
+                        window.location.reload();
+                    }
+
                     if (isLoggedIn) {
                         document.getElementById('nav-dashboard').classList.remove('hidden');
+                        if (document.getElementById('nav-perizinan')) {
+                            document.getElementById('nav-perizinan').classList.remove('hidden');
+                        }
+                        
+                        // Tampilkan Manajemen User jika superadmin
+                        if (localStorage.getItem('userRole') === 'superadmin' && adminNav) {
+                            adminNav.classList.remove('hidden');
+                        }
+
                         authSection.innerHTML = `
                             <button onclick="logout()" class="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-100 hover:bg-red-500 hover:text-white rounded-lg transition-colors text-sm font-medium">
-                                <i class="fas fa-sign-out-alt"></i> Logout
+                                <i class="ph ph-sign-out"></i> Logout
                             </button>
                         `;
                     } else {
+                        if (document.getElementById('nav-perizinan')) {
+                            document.getElementById('nav-perizinan').classList.add('hidden');
+                        }
                         authSection.innerHTML = `
                             <a href="login.html" class="flex items-center gap-2 px-4 py-2 bg-accent text-white hover:bg-blue-600 rounded-lg transition-colors text-sm font-medium">
                                 <i class="fas fa-sign-in-alt"></i> Login
@@ -94,7 +194,8 @@
                 
                 function logout() {
                     localStorage.removeItem('isLoggedIn');
-                    window.location.reload();
+                    localStorage.removeItem('userRole');
+                    window.location.href = 'index.html';
                 }
             </script>
         </div>
@@ -104,8 +205,14 @@
     <main class="flex-1 flex overflow-hidden relative">
 
         <!-- LEFT SIDEBAR (FILTER & LAYER) -->
-        <aside
-            class="w-[280px] bg-white shadow-[4px_0_10px_rgba(0,0,0,0.05)] z-40 flex flex-col h-full shrink-0 overflow-y-auto custom-scrollbar">
+        <aside id="left-sidebar"
+            class="w-[280px] bg-white shadow-[4px_0_10px_rgba(0,0,0,0.05)] z-40 flex flex-col h-full shrink-0 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300 relative">
+            
+            <!-- Toggle Sidebar Button -->
+            <button id="toggle-sidebar" class="absolute -right-8 top-1/2 -translate-y-1/2 bg-white border border-l-0 border-gray-200 w-8 h-16 rounded-r-xl shadow-[4px_2px_10px_rgba(0,0,0,0.05)] z-50 flex items-center justify-center hover:bg-gray-50 group transition-all duration-300">
+                <i class="ph ph-caret-left text-gray-400 group-hover:text-primary transition-transform duration-300" id="toggle-icon"></i>
+            </button>
+
             <div class="p-4 border-b border-gray-100">
                 <h2 class="font-semibold text-gray-700 flex items-center gap-2 mb-4">
                     <i class="ph ph-funnel"></i> Filter Data
@@ -256,9 +363,7 @@
                         </button>
                     </div>
                     
-                    <button class="w-8 h-8 flex items-center justify-center text-white/70 hover:text-white transition-colors">
-                        <i class="ph ph-caret-double-up text-sm"></i>
-                    </button>
+
                 </div>
             </div>
 
@@ -456,6 +561,21 @@
 
     <!-- Custom Logic -->
     <script src="app.js"></script>
+    <script>
+        // Sidebar Toggle Logic
+        const leftSidebar = document.getElementById('left-sidebar');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+        
+        if (toggleSidebarBtn && leftSidebar) {
+            toggleSidebarBtn.addEventListener('click', () => {
+                leftSidebar.classList.toggle('sidebar-collapsed');
+                // Invalidate map size after transition
+                setTimeout(() => {
+                    if (typeof map !== 'undefined') map.invalidateSize();
+                }, 300);
+            });
+        }
+    </script>
 </body>
 
 </html>

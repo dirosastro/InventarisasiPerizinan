@@ -12,13 +12,13 @@ class PerizinanController extends Controller
 {
     public function index()
     {
-        $data = Perizinan::with('lokasi')
+        $data = Perizinan::with(['lokasi', 'satker', 'dokumen'])
             ->leftJoin('perizinan_geo', 'perizinan.id', '=', 'perizinan_geo.perizinan_id')
             ->select('perizinan.*', 'perizinan_geo.geojson')
             ->get();
         return response()->json([
             'success' => true,
-            'message' => 'Daftar Data Perizinan',
+            'message' => 'Daftar Perizinan',
             'data'    => $data
         ], 200);
     }
@@ -28,6 +28,7 @@ class PerizinanController extends Controller
         $validated = $request->validate([
             'nomor_izin'     => 'required|unique:perizinan,nomor_izin',
             'pemohon'        => 'required|string',
+            'no_hp'          => 'nullable|string',
             'jenis_izin'     => 'required|in:rekomendasi,izin,dispensasi',
             'sub_jenis'      => 'nullable|string',
             'icon'           => 'nullable|string',
@@ -142,6 +143,7 @@ class PerizinanController extends Controller
         $validated = $request->validate([
             'nomor_izin'     => 'required|unique:perizinan,nomor_izin,' . $id,
             'pemohon'        => 'required|string',
+            'no_hp'          => 'nullable|string',
             'jenis_izin'     => 'required|in:rekomendasi,izin,dispensasi',
             'sub_jenis'      => 'nullable|string',
             'icon'           => 'nullable|string',

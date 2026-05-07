@@ -196,11 +196,21 @@ const pointToLayerIzin = (feature, latlng) => {
             iconAnchor: [11, 11],
             popupAnchor: [0, -11]
         });
-        return L.marker(latlng, { icon: boundaryIcon }).bindTooltip(feature.properties.label, {
-            direction: 'top',
-            offset: [0, -10],
-            className: 'custom-tooltip'
-        });
+        return L.marker(latlng, { icon: boundaryIcon })
+            .bindTooltip(feature.properties.label, {
+                direction: 'top',
+                offset: [0, -10],
+                className: 'custom-tooltip'
+            })
+            .bindPopup(`
+                <div class="p-2">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase mb-1">Koordinat ${feature.properties.label}</div>
+                    <div class="bg-gray-50 p-2 rounded-lg border border-gray-100 font-mono text-[11px] text-primary">
+                        ${latlng.lat.toFixed(7)}, ${latlng.lng.toFixed(7)}
+                    </div>
+                    <div class="mt-2 text-[9px] text-gray-400 italic">*Koordinat diambil dari data spasial perizinan</div>
+                </div>
+            `, { className: 'boundary-popup' });
     }
 
     const iconClass = feature.properties.icon || getIconByJenisIzin(feature.properties.jenis_izin, feature.properties.pemohon);
@@ -547,7 +557,24 @@ fetch('../api/Peta%20Jalan%20Nasional.geojson')
             onEachFeature: function (feature, layer) {
                 const namaRuas = feature.properties['Nama Ruas'] || feature.properties.LINK_NAME;
                 if (namaRuas) {
-                    layer.bindPopup(`<b>Ruas Jalan:</b> ${namaRuas}<br><b>PPK:</b> ${feature.properties.PPK}`);
+                    const length = turf.length(feature, { units: 'kilometers' }).toFixed(2);
+                    const ppk = feature.properties.PPK || '-';
+                    layer.bindPopup(`
+                        <div class="p-1">
+                            <b class="text-primary block mb-1">Ruas Jalan</b>
+                            <div class="text-sm font-bold mb-2">${namaRuas}</div>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div>
+                                    <span class="text-gray-500 block">Panjang</span>
+                                    <span class="font-semibold">${length} Km</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500 block">Pemilik ruas</span>
+                                    <span class="font-semibold">${ppk}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `);
                 }
                 layers.ruas_jalan.addLayer(layer);
             }
@@ -563,7 +590,24 @@ fetch('../api/Peta%20Jalan%20Nasional.geojson')
                 onEachFeature: function (feature, layer) {
                     const namaRuas = feature.properties['Nama Ruas'] || feature.properties.LINK_NAME;
                     if (namaRuas) {
-                        layer.bindPopup(`<b>Area RUMIJA:</b> ${namaRuas}`);
+                        const length = turf.length(feature, { units: 'kilometers' }).toFixed(2);
+                        const ppk = feature.properties.PPK || '-';
+                        layer.bindPopup(`
+                            <div class="p-1">
+                                <b class="text-indigo-600 block mb-1">Area RUMIJA</b>
+                                <div class="text-sm font-bold mb-2">${namaRuas}</div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                        <span class="text-gray-500 block">Panjang Ruas</span>
+                                        <span class="font-semibold">${length} Km</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500 block">Pemilik ruas</span>
+                                        <span class="font-semibold">${ppk}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
                     }
                     layers.rumija.addLayer(layer);
                 }
@@ -579,9 +623,13 @@ function loadDataToMap(data = geojsonData) {
         pointToLayer: function (feature, latlng) {
             if (feature.properties.type === 'izin') {
                 const marker = pointToLayerIzin(feature, latlng);
-                marker.bindPopup(createPopupContent(feature.properties, latlng), {
-                    className: 'custom-popup'
-                });
+                
+                // Only bind general popup if NOT a boundary marker (Start/End)
+                if (!feature.properties.is_boundary) {
+                    marker.bindPopup(createPopupContent(feature.properties, latlng), {
+                        className: 'custom-popup'
+                    });
+                }
 
                 // Click event for marker to open detail panel
                 marker.on('click', () => {
@@ -664,7 +712,7 @@ function createPopupContent(props, latlng) {
             <span class="info-value">${props.ruas_jalan}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">PPK:</span>
+            <span class="info-label">Pemilik ruas:</span>
             <span class="info-value">${props.ppk || '-'}</span>
         </div>
         <div class="info-row">
@@ -837,8 +885,45 @@ function filterData() {
 let allRuasNames = [];
 
 if (searchInput) {
+    const clearBtn = document.getElementById('clear-search');
+
+    // Function to adjust input width based on content
+    const adjustInputWidth = () => {
+        const val = searchInput.value;
+        if (!val) {
+            searchInput.style.width = '280px';
+            return;
+        }
+
+        // Create a temporary span to measure text width
+        const tempSpan = document.createElement('span');
+        tempSpan.style.visibility = 'hidden';
+        tempSpan.style.position = 'absolute';
+        tempSpan.style.whiteSpace = 'pre';
+        tempSpan.style.font = window.getComputedStyle(searchInput).font;
+        tempSpan.innerText = val;
+        document.body.appendChild(tempSpan);
+        
+        const textWidth = tempSpan.getBoundingClientRect().width;
+        document.body.removeChild(tempSpan);
+
+        // pl-9 (36px) + pr-10 (40px) + extra buffer (20px) = ~96px
+        const newWidth = Math.min(600, Math.max(280, textWidth + 100));
+        searchInput.style.width = `${newWidth}px`;
+    };
+
     searchInput.addEventListener('input', (e) => {
         const val = e.target.value;
+        
+        // Toggle Clear Button
+        if (clearBtn) {
+            if (val.length > 0) clearBtn.classList.remove('hidden');
+            else clearBtn.classList.add('hidden');
+        }
+
+        // Adjust width
+        adjustInputWidth();
+
         const datalist = document.getElementById('ruas-list');
         
         if (val.length >= 2) {
@@ -855,6 +940,17 @@ if (searchInput) {
         
         filterData();
     });
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchInput.style.width = '280px';
+            clearBtn.classList.add('hidden');
+            const datalist = document.getElementById('ruas-list');
+            if (datalist) datalist.innerHTML = '';
+            filterData();
+        });
+    }
 }
 
 function populateAutocomplete() {
@@ -938,20 +1034,47 @@ if (pegmanBtn) {
 if (pegmanIcon && mapDiv) {
     pegmanIcon.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', 'pegman');
+        pegmanIcon.classList.add('dragging');
         // Hide tooltip while dragging
         if (svTooltip) svTooltip.style.opacity = '0';
-        console.log('Dragging Pegman...');
+    });
+
+    let dragTarget = null;
+
+    pegmanIcon.addEventListener('dragend', () => {
+        pegmanIcon.classList.remove('dragging');
+        if (dragTarget) {
+            dragTarget.remove();
+            dragTarget = null;
+        }
     });
 
     mapDiv.addEventListener('dragover', (e) => {
         e.preventDefault(); // Allow drop
         e.dataTransfer.dropEffect = 'move';
+
+        if (!dragTarget) {
+            dragTarget = document.createElement('div');
+            dragTarget.className = 'drag-target-pointer';
+            document.body.appendChild(dragTarget);
+        }
+        
+        dragTarget.style.left = e.clientX + 'px';
+        dragTarget.style.top = e.clientY + 'px';
     });
 
     mapDiv.addEventListener('drop', (e) => {
         e.preventDefault();
         const data = e.dataTransfer.getData('text/plain');
         if (data !== 'pegman') return;
+
+        // Create ripple effect at drop point
+        const ripple = document.createElement('div');
+        ripple.className = 'drop-ripple';
+        ripple.style.left = e.clientX + 'px';
+        ripple.style.top = e.clientY + 'px';
+        document.body.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 1000);
 
         const latlng = map.mouseEventToLatLng(e);
         const dropPoint = map.mouseEventToContainerPoint(e);
