@@ -1,0 +1,220 @@
+SPESIFIKASI UI HALAMAN PETA
+SISTEM INFORMASI PERIZINAN BPJN NTB
+
+1. TUJUAN HALAMAN
+Halaman peta digunakan untuk:
+- Menampilkan visualisasi data perizinan berbasis lokasi
+- Monitoring status izin (aktif, hampir habis, kadaluarsa)
+- Menampilkan data teknis ruas jalan (RUMIJA, RUMAJA, pemanfaatan)
+- Akses cepat ke detail izin dan dokumen
+
+--------------------------------------------------
+
+2. STRUKTUR LAYOUT
+- Header (Top Navigation)
+- Sidebar kiri (Filter & Layer)
+- Area utama (Peta interaktif)
+- Panel kanan (Detail perizinan)
+- Footer (opsional)
+
+--------------------------------------------------
+
+3. KOMPONEN UI
+
+3.1 HEADER (TOP BAR)
+Fungsi: Navigasi utama
+
+Komponen:
+- Logo BPJN NTB
+- Menu: Dashboard, Perizinan, Peta (aktif), PNBP, Dokumen, Laporan
+- Search bar (cari ruas / izin)
+- Notifikasi
+- User profile
+
+Style:
+- Background: Biru tua (#1E3A5F)
+- Tinggi: ±60px
+
+--------------------------------------------------
+
+3.2 SIDEBAR KIRI (FILTER & LAYER)
+Lebar: ±280px
+
+A. Filter Data:
+- Jenis Izin:
+  * Rekomendasi
+  * Izin (Kabel, Pipa, Reklame)
+  * Dispensasi
+- Satker
+- PPK
+
+Status:
+- Aktif
+- Hampir Habis
+- Kadaluarsa
+
+B. Layer Control:
+- Ruas Jalan
+- RUMIJA
+- RUMAJA
+- Area Pemanfaatan
+- Titik Perizinan
+
+C. Ringkasan:
+- Total izin aktif
+- Izin jatuh tempo
+- Total PNBP
+
+--------------------------------------------------
+
+3.3 AREA PETA (MAIN MAP)
+Fungsi: Visualisasi GeoJSON
+
+Layer:
+- Ruas jalan (LineString)
+- RUMIJA (Polygon)
+- RUMAJA (Polygon)
+- Area pemanfaatan (Polygon)
+- Titik izin (Point)
+
+Interaksi:
+- Klik objek → popup detail
+- Hover → highlight
+- Zoom in/out
+- Drag peta
+
+Kontrol:
+- Zoom (+/-)
+- Reset view
+- Lokasi (opsional)
+
+Legend:
+- Aktif (hijau)
+- Hampir habis (kuning)
+- Kadaluarsa (merah)
+- Ruas jalan
+- RUMIJA
+- RUMAJA
+
+--------------------------------------------------
+
+3.4 POPUP PETA
+Muncul saat klik objek
+
+Isi:
+- Nama pemohon
+- Jenis izin
+- Ruas jalan
+- Masa berlaku
+- Status izin
+- Nilai PNBP
+
+Aksi:
+- Tombol "Detail"
+- Tombol "Lihat Dokumen"
+
+--------------------------------------------------
+
+3.5 PANEL KANAN (DETAIL PERIZINAN)
+Lebar: ±320–350px
+
+Tab:
+1. Info Umum
+2. Data Teknis
+3. Dokumen
+4. Riwayat
+
+A. Info Umum:
+- Nomor izin
+- Pemohon
+- Jenis izin
+- Satker
+- PPK
+- Ruas jalan
+- Tanggal terbit
+- Masa berlaku
+- Status
+
+B. Data Teknis:
+- Panjang RUMIJA
+- Panjang RUMAJA
+- Panjang dimanfaatkan
+- STA awal & akhir
+
+C. Dokumen:
+- File PDF
+- Preview
+- Download
+
+D. Riwayat:
+- Log perubahan
+- Tanggal update
+
+--------------------------------------------------
+
+4. WARNA STATUS
+- Aktif: Hijau
+- Hampir Habis: Kuning (<30 hari)
+- Kadaluarsa: Merah
+
+--------------------------------------------------
+
+5. STRUKTUR DATA GEOJSON
+
+{
+  "type": "Feature",
+  "properties": {
+    "id": 1,
+    "nama_ruas": "Mataram - Senggigi",
+    "jenis_izin": "Izin Kabel",
+    "pemohon": "PT XYZ",
+    "status": "aktif",
+    "masa_berlaku_awal": "2025-01-01",
+    "masa_berlaku_akhir": "2026-01-01",
+    "pnbp": 15000000
+  },
+  "geometry": {
+    "type": "LineString",
+    "coordinates": []
+  }
+}
+
+--------------------------------------------------
+
+6. TEKNOLOGI
+Frontend:
+- HTML / React / Next.js
+- Tailwind / Bootstrap
+
+Peta:
+- Leaflet.js atau Mapbox GL JS
+
+Backend:
+- Laravel atau Node.js
+
+--------------------------------------------------
+
+7. RESPONSIVE
+- Desktop (utama)
+- Tablet (sidebar collapse)
+- Mobile (peta fullscreen + bottom sheet)
+
+--------------------------------------------------
+
+8. FITUR TAMBAHAN (OPSIONAL)
+- Heatmap perizinan
+- Timeline filter
+- Export data
+- Integrasi notifikasi
+
+--------------------------------------------------
+
+9. ALUR PENGGUNAAN
+1. User buka halaman peta
+2. Pilih filter
+3. Data tampil di peta
+4. Klik objek → popup muncul
+5. Klik detail → panel kanan terbuka
+6. Akses dokumen atau data teknis
+
+--------------------------------------------------

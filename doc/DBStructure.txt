@@ -1,0 +1,169 @@
+STRUKTUR DATABASE
+SISTEM INFORMASI PERIZINAN BPJN NTB
+
+==================================================
+1. TABEL: users
+==================================================
+id (PK)
+nama
+email
+password
+role (admin, ppk, satker, pimpinan)
+satker_id (FK)
+created_at
+updated_at
+
+==================================================
+2. TABEL: satker
+==================================================
+id (PK)
+nama_satker
+kode_satker
+created_at
+updated_at
+
+==================================================
+3. TABEL: ppk
+==================================================
+id (PK)
+nama_ppk
+satker_id (FK)
+created_at
+updated_at
+
+==================================================
+4. TABEL: ruas_jalan
+==================================================
+id (PK)
+nama_ruas
+kode_ruas
+panjang_km
+satker_id (FK)
+ppk_id (FK)
+geom (GeoJSON / geometry)
+created_at
+updated_at
+
+==================================================
+5. TABEL: perizinan
+==================================================
+id (PK)
+nomor_izin
+jenis_izin (rekomendasi, izin, dispensasi)
+sub_jenis (kabel, pipa, reklame, angkutan)
+pemohon
+satker_id (FK)
+ppk_id (FK)
+ruas_id (FK)
+tanggal_terbit
+tanggal_akhir
+status (aktif, hampir_habis, kadaluarsa)
+created_at
+updated_at
+
+==================================================
+6. TABEL: data_teknis
+==================================================
+id (PK)
+perizinan_id (FK)
+panjang_rumija
+panjang_rumaja
+panjang_dimanfaatkan
+sta_awal
+sta_akhir
+created_at
+updated_at
+
+==================================================
+7. TABEL: pnbp
+==================================================
+id (PK)
+perizinan_id (FK)
+jumlah
+tanggal_bayar
+keterangan
+created_at
+updated_at
+
+==================================================
+8. TABEL: dokumen
+==================================================
+id (PK)
+perizinan_id (FK)
+nama_file
+file_path
+tipe_dokumen (jaminan_pelaksanaan, izin, lainnya)
+ukuran_file
+created_at
+updated_at
+
+==================================================
+9. TABEL: geojson_layer
+==================================================
+id (PK)
+nama_layer
+jenis_layer (ruas, rumija, rumaja, pemanfaatan, titik_izin)
+data_geojson (JSON)
+created_at
+updated_at
+
+==================================================
+10. TABEL: perizinan_geo
+==================================================
+id (PK)
+perizinan_id (FK)
+geojson (JSON)
+created_at
+updated_at
+
+==================================================
+11. TABEL: notifikasi
+==================================================
+id (PK)
+perizinan_id (FK)
+jenis_notifikasi (H-30, H-14, H-7, H-1)
+tanggal_kirim
+status_kirim (pending, terkirim)
+created_at
+updated_at
+
+==================================================
+12. TABEL: log_aktivitas
+==================================================
+id (PK)
+user_id (FK)
+aktivitas
+tabel
+data_id
+created_at
+
+==================================================
+RELASI UTAMA
+==================================================
+- users.satker_id -> satker.id
+- ppk.satker_id -> satker.id
+- ruas_jalan.satker_id -> satker.id
+- ruas_jalan.ppk_id -> ppk.id
+- perizinan.satker_id -> satker.id
+- perizinan.ppk_id -> ppk.id
+- perizinan.ruas_id -> ruas_jalan.id
+- data_teknis.perizinan_id -> perizinan.id
+- pnbp.perizinan_id -> perizinan.id
+- dokumen.perizinan_id -> perizinan.id
+- perizinan_geo.perizinan_id -> perizinan.id
+- notifikasi.perizinan_id -> perizinan.id
+- log_aktivitas.user_id -> users.id
+
+==================================================
+CATATAN TEKNIS
+==================================================
+- Gunakan PostgreSQL + PostGIS (disarankan untuk GIS)
+- Field geom dan geojson bisa pakai tipe:
+  * geometry (PostGIS)
+  * JSON (alternatif sederhana)
+- Status perizinan bisa dihitung otomatis dari tanggal_akhir
+- Data GeoJSON bisa disimpan di:
+  * tabel ruas_jalan (untuk garis utama)
+  * tabel perizinan_geo (untuk titik izin)
+
+==================================================

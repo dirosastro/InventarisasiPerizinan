@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <script>
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siperjalan - Tambah Perizinan</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E3A5F',
+                        secondary: '#2C5282',
+                        accent: '#3182CE',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- JSZip for KMZ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- toGeoJSON for KML -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.16.0/togeojson.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+        
+        .icon-option {
+            transition: all 0.2s ease;
+        }
+        .icon-option:hover {
+            transform: translateY(-2px);
+            background-color: #EBF8FF;
+            border-color: #3182CE;
+        }
+        .icon-option.selected {
+            background-color: #3182CE;
+            color: white;
+            border-color: #3182CE;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-['Inter'] h-screen overflow-hidden flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-primary text-white h-[60px] flex items-center justify-between px-4 lg:px-6 shadow-md z-50 shrink-0">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 font-bold text-lg tracking-wide">
+                <img src="img/logo.png" alt="Logo" class="h-8 w-auto">
+                <span>Siperjalan - ADMIN Panel</span>
+            </div>
+            <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+                <a href="index.html" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Beranda</a>
+                <a href="dashboard.html" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Dashboard Admin</a>
+                <a href="peta.html" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Peta Pemanfaatan</a>
+                <a href="perizinan.html" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Data Perizinan</a>
+            </nav>
+        </div>
+        <div class="flex items-center">
+            <button onclick="logout()" class="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-100 hover:bg-red-500 hover:text-white rounded-lg transition-colors text-sm font-medium">
+                <i class="ph ph-sign-out"></i> Logout
+            </button>
+            <script>
+                function logout() {
+                    localStorage.removeItem('isLoggedIn');
+                    window.location.href = 'index.html';
+                }
+            </script>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar p-6 bg-gray-100">
+        <div class="max-w-4xl mx-auto space-y-6">
+            
+            <div class="flex items-center gap-4">
+                <a href="perizinan.html" class="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-colors text-gray-600">
+                    <i class="ph ph-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1 id="page-title" class="text-2xl font-bold text-gray-800">Formulir Tambah Perizinan</h1>
+                    <p id="page-subtitle" class="text-sm text-gray-500 mt-1">Masukkan detail permohonan izin pemanfaatan bagian-bagian jalan baru.</p>
+                </div>
+            </div>
+
+            <!-- Toast Notification -->
+            <div id="toast" class="hidden p-4 mb-4 text-sm rounded-lg" role="alert">
+                <span id="toast-message" class="font-medium"></span>
+            </div>
+
+            <form id="form-perizinan" class="glass-panel rounded-2xl p-8">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Informasi Umum -->
+                    <div class="space-y-4">
+                        <h2 class="font-semibold text-lg border-b pb-2 mb-4">Informasi Umum</h2>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Izin</label>
+                            <input type="text" id="nomor_izin" required placeholder="IZN/BPJN-NTB/2026/001" 
+                                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-all bg-gray-50 hover:bg-white">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pemohon / Perusahaan</label>
+                            <input type="text" id="pemohon" required placeholder="PT. Telekomunikasi..." 
+                                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-all bg-gray-50 hover:bg-white">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Izin</label>
+                                <select id="jenis_izin" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white">
+                                    <option value="izin">Izin</option>
+                                    <option value="rekomendasi">Rekomendasi</option>
+                                    <option value="dispensasi">Dispensasi</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sub Jenis</label>
+                                <select id="sub_jenis" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <!-- Diisi secara dinamis oleh JS -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Terbit</label>
+                                <input type="date" id="tanggal_terbit" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white">
+                            </div>
+                            <div id="container_tanggal_akhir">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Akhir</label>
+                                <input type="date" id="tanggal_akhir" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white">
+                            </div>
+                        </div>
+
+                        <div id="container_pnbp">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nilai PNBP (Rp)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium text-sm">Rp</span>
+                                <input type="text" id="pnbp" placeholder="0" 
+                                    class="w-full pl-11 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-all bg-gray-50 hover:bg-white">
+                            </div>
+                            <p class="text-[10px] text-gray-400 mt-1 italic">*Masukkan angka saja, otomatis ditambahkan titik pemisah</p>
+                        </div>
+                    </div>
+
+                    <!-- Ikon & GeoJSON -->
+                    <div class="space-y-4">
+                        <h2 class="font-semibold text-lg border-b pb-2 mb-4">Ikon & Dokumen</h2>
+
+                        <!-- Ikon Picker -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Ikon Peta (Opsional)</label>
+                            <input type="hidden" id="icon_input" value="">
+                            <div class="grid grid-cols-4 gap-3" id="icon-picker">
+                                <div class="icon-option p-3 border rounded-xl text-center cursor-pointer text-gray-500" data-icon="ph-lightning">
+                                    <i class="ph ph-lightning text-2xl mb-1"></i><div class="text-[10px] font-medium">Listrik</div>
+                                </div>
+                                <div class="icon-option p-3 border rounded-xl text-center cursor-pointer text-gray-500" data-icon="ph-drop">
+                                    <i class="ph ph-drop text-2xl mb-1"></i><div class="text-[10px] font-medium">Air</div>
+                                </div>
+                                <div class="icon-option p-3 border rounded-xl text-center cursor-pointer text-gray-500" data-icon="ph-wifi-high">
+                                    <i class="ph ph-wifi-high text-2xl mb-1"></i><div class="text-[10px] font-medium">Optik</div>
+                                </div>
+                                <div class="icon-option p-3 border rounded-xl text-center cursor-pointer text-gray-500" data-icon="ph-signpost">
+                                    <i class="ph ph-signpost text-2xl mb-1"></i><div class="text-[10px] font-medium">Reklame</div>
+                                </div>
+                                <div class="icon-option p-3 border rounded-xl text-center cursor-pointer text-gray-500" data-icon="ph-truck">
+                                    <i class="ph ph-truck text-2xl mb-1"></i><div class="text-[10px] font-medium">Angkutan</div>
+                                </div>
+                                <div class="icon-option p-3 border rounded-xl text-center cursor-pointer text-gray-500" data-icon="ph-map-pin">
+                                    <i class="ph ph-map-pin text-2xl mb-1"></i><div class="text-[10px] font-medium">Umum</div>
+                                </div>
+                                <div class="icon-option p-3 border rounded-xl text-center cursor-pointer text-gray-500" data-icon="ph-car">
+                                    <i class="ph ph-car text-2xl mb-1"></i><div class="text-[10px] font-medium">Akses Jalan</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dokumen Pendukung (Multi-upload) -->
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen Pendukung (PDF/Gambar)</label>
+                            <div class="flex items-center justify-center w-full">
+                                <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all group">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <i class="ph ph-file-plus text-3xl text-gray-400 group-hover:text-accent mb-2"></i>
+                                        <p class="text-sm text-gray-500"><span class="font-semibold text-accent">Pilih Dokumen</span> atau seret ke sini</p>
+                                        <p class="text-xs text-gray-400">Bisa pilih lebih dari satu file</p>
+                                    </div>
+                                    <input id="dokumen_pendukung" type="file" name="dokumen[]" multiple class="hidden" />
+                                </label>
+                            </div>
+                            <div id="dokumen-list" class="mt-3 space-y-2">
+                                <!-- Daftar file yang dipilih akan muncul di sini -->
+                            </div>
+                        </div>
+
+                        <!-- GeoJSON Upload -->
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload File Geospasial (Opsional)</label>
+                            <div class="flex items-center justify-center w-full">
+                                <label for="geojson_file" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 border-gray-300 transition-colors group">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <i class="ph ph-cloud-arrow-up text-3xl text-gray-400 group-hover:text-accent mb-2 transition-colors"></i>
+                                        <p class="mb-1 text-sm text-gray-500"><span class="font-semibold text-accent">Klik untuk unggah</span> atau seret file</p>
+                                        <p class="text-xs text-gray-400">Format didukung: .geojson, .kml, .kmz</p>
+                                    </div>
+                                    <input id="geojson_file" type="file" accept=".geojson,application/geo+json,.kml,.kmz" class="hidden" />
+                                </label>
+                            </div>
+                            <div id="file-name-display" class="text-xs text-green-600 font-medium mt-2 hidden flex items-center gap-1">
+                                <i class="ph-fill ph-check-circle"></i> <span id="file-name-text"></span> siap diunggah.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DAFTAR LOKASI (Multi-row) -->
+                <div class="mt-6 glass-panel rounded-xl p-6 border border-blue-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="font-semibold text-lg text-gray-800">Daftar Lokasi Pemanfaatan</h2>
+                            <p class="text-xs text-gray-500 mt-0.5">Satu permohonan bisa mencakup beberapa ruas jalan dari PPK yang berbeda.</p>
+                        </div>
+                        <button type="button" id="btn-tambah-lokasi" class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-accent text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                            <i class="ph ph-plus"></i> Tambah Lokasi
+                        </button>
+                    </div>
+
+                    <div id="lokasi-container" class="space-y-3">
+                        <!-- Baris lokasi akan ditambahkan di sini oleh JS -->
+                    </div>
+                    <p id="lokasi-empty" class="text-sm text-center text-gray-400 py-4 italic">Belum ada lokasi. Klik "Tambah Lokasi" untuk menambahkan.</p>
+                </div>
+
+                <div class="mt-8 border-t pt-6 flex justify-end gap-3">
+                    <button type="button" onclick="window.location.href='perizinan.html'" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-200 transition-all">
+                        Batal
+                    </button>
+                    <button type="submit" id="btn-submit" class="px-5 py-2.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2">
+                        <i class="ph ph-floppy-disk"></i> Simpan Data
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </main>
+
+    <script>
+        // ─── GLOBAL DATA ───────────────────────────────────────────
+        let allSatker = [];
+        let allPpk = [];
+        let allRuasJalan = [];
+        let lokasi = [];       // Array lokasi yang akan dikirim
+        let geojsonData = null;
+        let editId = new URLSearchParams(window.location.search).get('id');
+
+        // ─── LOGIKA JENIS IZIN & SUB JENIS ──────────────────────────
+        const jenisIzin = document.getElementById('jenis_izin');
+        const subJenis = document.getElementById('sub_jenis');
+        const subJenisOptions = {
+            'izin': [
+                { value: 'Izin Penempatan Jaringan Utilitas', text: 'Izin Penempatan Jaringan Utilitas' },
+                { value: 'Izin Penempatan Iklan/Reklame', text: 'Izin Penempatan Iklan/Reklame' }
+            ],
+            'rekomendasi': [
+                { value: 'Akses Jalan Keluar/Masuk', text: 'Akses Jalan Keluar/Masuk' }
+            ],
+            'dispensasi': [
+                { value: '-', text: 'Tidak ada Sub Jenis' }
+            ]
+        };
+
+        function updateSubJenis() {
+            const selected = jenisIzin.value;
+            const options = subJenisOptions[selected] || [];
+            subJenis.innerHTML = options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
+            
+            if (selected === 'dispensasi') {
+                subJenis.disabled = true;
+                subJenis.removeAttribute('required');
+            } else {
+                subJenis.disabled = false;
+                subJenis.setAttribute('required', 'required');
+            }
+            handleTanggalAkhirVisibility();
+        }
+
+        function handleTanggalAkhirVisibility() {
+            const container = document.getElementById('container_tanggal_akhir');
+            const input = document.getElementById('tanggal_akhir');
+            
+            if (subJenis.value === 'Akses Jalan Keluar/Masuk') {
+                container.classList.add('hidden');
+                input.removeAttribute('required');
+                input.value = ''; // Reset value
+            } else {
+                container.classList.remove('hidden');
+                input.setAttribute('required', 'required');
+            }
+            handlePnbpVisibility();
+            autoSelectIcon();
+        }
+
+        function autoSelectIcon() {
+            const sj = subJenis.value;
+            let iconToSelect = '';
+
+            if (sj.includes('Utilitas')) {
+                // Default to Optik for Utilitas if not specified
+                iconToSelect = 'fa-wifi';
+            } else if (sj.includes('Reklame')) {
+                iconToSelect = 'fa-rectangle-ad';
+            } else if (sj.includes('Akses Jalan')) {
+                iconToSelect = 'fa-car';
+            } else {
+                iconToSelect = 'fa-location-dot';
+            }
+
+            if (iconToSelect) {
+                iconOptions.forEach(opt => {
+                    if (opt.dataset.icon === iconToSelect) {
+                        opt.click(); // Trigger the click event to select it
+                    }
+                });
+            }
+        }
+
+        function handlePnbpVisibility() {
+            const container = document.getElementById('container_pnbp');
+            const input = document.getElementById('pnbp');
+            
+            if (jenisIzin.value === 'rekomendasi' && subJenis.value === 'Akses Jalan Keluar/Masuk') {
+                container.classList.add('hidden');
+                input.value = '0';
+            } else {
+                container.classList.remove('hidden');
+            }
+        }
+
+        jenisIzin.addEventListener('change', updateSubJenis);
+        subJenis.addEventListener('change', handleTanggalAkhirVisibility);
+        updateSubJenis(); // Inisialisasi awal
+
+        // ─── PNBP FORMATTING ────────────────────────────────────────
+        const pnbpInput = document.getElementById('pnbp');
+
+        // Hanya izinkan karakter numerik, backspace, delete, arrow keys, tab
+        pnbpInput.addEventListener('keydown', (e) => {
+            const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Home', 'End'];
+            if (!allowed.includes(e.key) && !/^\d$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+            }
+        });
+
+        // Gunakan event 'input' agar paste juga tertangkap
+        pnbpInput.addEventListener('input', (e) => {
+            const input = e.target;
+            const cursorPos = input.selectionStart;
+            const oldValue = input.value;
+            const oldLen = oldValue.length;
+
+            // Hitung jumlah digit sebelum kursor (abaikan titik pemisah)
+            const digitsBeforeCursor = oldValue.substring(0, cursorPos).replace(/\./g, '').length;
+
+            // Format ulang
+            const rawDigits = oldValue.replace(/\D/g, '');
+            const formatted = rawDigits === '' ? '' : rawDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            input.value = formatted;
+
+            // Hitung posisi kursor baru agar tidak loncat ke akhir
+            let count = 0;
+            let newCursor = 0;
+            for (let i = 0; i < formatted.length; i++) {
+                if (formatted[i] !== '.') count++;
+                if (count === digitsBeforeCursor) {
+                    newCursor = i + 1;
+                    break;
+                }
+            }
+            // Jika semua digit sudah terhitung dan belum break
+            if (count < digitsBeforeCursor) newCursor = formatted.length;
+            input.setSelectionRange(newCursor, newCursor);
+        });
+
+        // ─── ICON PICKER ────────────────────────────────────────────
+        const iconOptions = document.querySelectorAll('.icon-option');
+        const iconInput = document.getElementById('icon_input');
+        iconOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                iconOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                iconInput.value = option.dataset.icon;
+            });
+        });
+
+        // ─── DOKUMEN MULTI-UPLOAD ──────────────────────────────────
+        const docInput = document.getElementById('dokumen_pendukung');
+        const docList = document.getElementById('dokumen-list');
+
+        docInput.addEventListener('change', () => {
+            docList.innerHTML = '';
+            const files = Array.from(docInput.files);
+            files.forEach((file, index) => {
+                const size = (file.size / 1024).toFixed(1);
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2 bg-blue-50 border border-blue-100 rounded-lg text-xs';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 text-blue-700">
+                        <i class="ph ph-file-text text-lg"></i>
+                        <span class="font-medium truncate max-w-[200px]">${file.name}</span>
+                        <span class="text-blue-400">(${size} KB)</span>
+                    </div>
+                    <i class="ph ph-check-circle text-green-500 text-lg"></i>
+                `;
+                docList.appendChild(item);
+            });
+        });
+
+        // ─── GEOJSON UPLOAD ─────────────────────────────────────────
+        const fileInput = document.getElementById('geojson_file');
+        const fileDisplay = document.getElementById('file-name-display');
+        const fileText = document.getElementById('file-name-text');
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            fileText.textContent = file.name;
+            fileDisplay.classList.remove('hidden');
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            try {
+                if (ext === 'geojson') {
+                    const text = await file.text();
+                    JSON.parse(text); // validasi JSON
+                    geojsonData = text;
+                } else if (ext === 'kml') {
+                    const text = await file.text();
+                    const dom = new DOMParser().parseFromString(text, "text/xml");
+                    const geojson = toGeoJSON.kml(dom);
+                    geojsonData = JSON.stringify(geojson);
+                } else if (ext === 'kmz') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const zip = await JSZip.loadAsync(arrayBuffer);
+                    
+                    // Temukan file .kml di dalam zip KMZ
+                    const kmlFileObj = Object.values(zip.files).find(f => f.name.toLowerCase().endsWith('.kml'));
+                    if (!kmlFileObj) throw new Error("File KML tidak ditemukan di dalam arsip KMZ");
+                    
+                    const kmlText = await kmlFileObj.async('string');
+                    const dom = new DOMParser().parseFromString(kmlText, "text/xml");
+                    const geojson = toGeoJSON.kml(dom);
+                    geojsonData = JSON.stringify(geojson);
+                } else {
+                    throw new Error("Format file tidak didukung!");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Gagal membaca file: " + err.message);
+                fileInput.value = "";
+                fileDisplay.classList.add('hidden');
+                geojsonData = null;
+            }
+        });
+
+        // ─── FETCH MASTER DATA ──────────────────────────────────────
+        async function fetchAllMasterData() {
+            const [sRes, pRes, rRes] = await Promise.all([
+                fetch('http://localhost:8000/api/satker'),
+                fetch('http://localhost:8000/api/ppk'),
+                fetch('http://localhost:8000/api/ruas-jalan')
+            ]);
+            const [sJson, pJson, rJson] = await Promise.all([sRes.json(), pRes.json(), rRes.json()]);
+            if (sJson.success) allSatker = sJson.data;
+            if (pJson.success) allPpk = pJson.data;
+            if (rJson.success) allRuasJalan = rJson.data;
+        }
+
+        function buildSelectOptions(selectEl, items, valueFn, labelFn, placeholder) {
+            selectEl.innerHTML = `<option value="">${placeholder}</option>`;
+            items.forEach(item => {
+                selectEl.innerHTML += `<option value="${valueFn(item)}">${labelFn(item)}</option>`;
+            });
+        }
+
+        // ─── MULTI-LOKASI ───────────────────────────────────────────
+        function updateLokasiEmpty() {
+            const container = document.getElementById('lokasi-container');
+            const empty = document.getElementById('lokasi-empty');
+            empty.classList.toggle('hidden', container.children.length > 0);
+        }
+
+        function tambahLokasi() {
+            const idx = Date.now();
+            const container = document.getElementById('lokasi-container');
+
+            const row = document.createElement('div');
+            row.className = 'bg-white border border-gray-200 rounded-xl p-4 space-y-3 shadow-sm';
+            row.dataset.idx = idx;
+            row.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-accent uppercase tracking-wide">
+                        <i class="ph-fill ph-map-pin"></i> Lokasi ${container.children.length + 1}
+                    </span>
+                    <button type="button" onclick="hapusLokasi(${idx})" class="text-red-400 hover:text-red-600 transition-colors text-lg p-1 rounded-md hover:bg-red-50">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Satker</label>
+                        <select class="sel-satker w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50" data-idx="${idx}">
+                            <option value="">-- Pilih Satker --</option>
+                            ${allSatker.map(s => `<option value="${s.id}">${s.nama_satker}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">PPK</label>
+                        <select class="sel-ppk w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50" data-idx="${idx}" disabled>
+                            <option value="">-- Pilih Satker dulu --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Ruas Jalan</label>
+                        <select class="sel-ruas w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50" data-idx="${idx}" disabled>
+                            <option value="">-- Pilih PPK dulu --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">STA / Koordinat Awal</label>
+                        <input type="text" class="inp-sta-awal w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-accent focus:outline-none transition-all" placeholder="Km 12+500 atau -8.5, 116.1" data-idx="${idx}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">STA / Koordinat Akhir</label>
+                        <input type="text" class="inp-sta-akhir w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-accent focus:outline-none transition-all" placeholder="Km 13+000 atau -8.6, 116.2" data-idx="${idx}">
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(row);
+            updateLokasiEmpty();
+            updateLokasiNumbers();
+
+            // Cascade: Satker → PPK
+            const selSatker = row.querySelector('.sel-satker');
+            const selPpk = row.querySelector('.sel-ppk');
+            const selRuas = row.querySelector('.sel-ruas');
+
+            selSatker.addEventListener('change', () => {
+                const sid = selSatker.value;
+                selPpk.disabled = !sid;
+                selRuas.innerHTML = '<option value="">-- Pilih PPK dulu --</option>';
+                selRuas.disabled = true;
+                if (sid) {
+                    const filtered = allPpk.filter(p => String(p.satker_id) === String(sid));
+                    buildSelectOptions(selPpk, filtered, p => p.id, p => p.nama_ppk, '-- Pilih PPK --');
+                    selPpk.disabled = false;
+                } else {
+                    selPpk.innerHTML = '<option value="">-- Pilih Satker dulu --</option>';
+                    selPpk.disabled = true;
+                }
+            });
+
+            // Cascade: PPK → Ruas
+            selPpk.addEventListener('change', () => {
+                const pid = selPpk.value;
+                if (pid) {
+                    const filtered = allRuasJalan.filter(r => String(r.ppk_id) === String(pid));
+                    buildSelectOptions(selRuas, filtered, r => r.nama_ruas, r => r.nama_ruas, '-- Pilih Ruas Jalan --');
+                    selRuas.disabled = false;
+                } else {
+                    selRuas.innerHTML = '<option value="">-- Pilih PPK dulu --</option>';
+                    selRuas.disabled = true;
+                }
+            });
+        }
+
+        function hapusLokasi(idx) {
+            const row = document.querySelector(`[data-idx="${idx}"]`);
+            if (row) row.remove();
+            updateLokasiEmpty();
+            updateLokasiNumbers();
+        }
+
+        function updateLokasiNumbers() {
+            document.querySelectorAll('#lokasi-container > div').forEach((row, i) => {
+                const label = row.querySelector('span.text-xs');
+                if (label) label.innerHTML = `<i class="ph-fill ph-map-pin"></i> Lokasi ${i + 1}`;
+            });
+        }
+
+        function collectLokasi() {
+            const rows = document.querySelectorAll('#lokasi-container > div');
+            const result = [];
+            rows.forEach(row => {
+                result.push({
+                    satker_id:       parseInt(row.querySelector('.sel-satker').value) || null,
+                    ppk_id:          parseInt(row.querySelector('.sel-ppk').value) || null,
+                    nama_ruas_jalan: row.querySelector('.sel-ruas').value || '',
+                    sta_awal:        row.querySelector('.inp-sta-awal').value || null,
+                    sta_akhir:       row.querySelector('.inp-sta-akhir').value || null,
+                });
+            });
+            return result;
+        }
+
+        // ─── FORM SUBMIT ────────────────────────────────────────────
+        const form = document.getElementById('form-perizinan');
+        const btnSubmit = document.getElementById('btn-submit');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const lokasiData = collectLokasi();
+            if (lokasiData.length === 0) {
+                showToast('Harap tambahkan minimal 1 lokasi pemanfaatan!', 'error');
+                return;
+            }
+            const invalid = lokasiData.find(l => !l.satker_id || !l.ppk_id || !l.nama_ruas_jalan);
+            if (invalid) {
+                showToast('Setiap lokasi harus memiliki Satker, PPK, dan Ruas Jalan!', 'error');
+                return;
+            }
+
+            btnSubmit.innerHTML = `<i class="ph ph-spinner animate-spin"></i> Menyimpan...`;
+            btnSubmit.disabled = true;
+
+            const formData = new FormData();
+            formData.append('nomor_izin', document.getElementById('nomor_izin').value);
+            formData.append('jenis_izin', document.getElementById('jenis_izin').value);
+            formData.append('sub_jenis', document.getElementById('sub_jenis').value);
+            formData.append('pemohon', document.getElementById('pemohon').value);
+            formData.append('tanggal_terbit', document.getElementById('tanggal_terbit').value);
+            formData.append('tanggal_akhir', document.getElementById('tanggal_akhir').value);
+            
+            // Bersihkan titik dari PNBP sebelum kirim
+            const pnbpRaw = document.getElementById('pnbp').value.replace(/\./g, '') || 0;
+            formData.append('pnbp', pnbpRaw);
+            
+            formData.append('satker_id', lokasiData[0].satker_id);
+            formData.append('icon', iconInput.value || '');
+            formData.append('geojson', geojsonData || '');
+            formData.append('lokasi', JSON.stringify(lokasiData)); // Kirim sebagai string JSON
+
+            // Tambahkan banyak dokumen pendukung
+            const docs = docInput.files;
+            for (let i = 0; i < docs.length; i++) {
+                formData.append('dokumen[]', docs[i]);
+            }
+
+            const url = editId ? `http://localhost:8000/api/perizinan/${editId}` : 'http://localhost:8000/api/perizinan';
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: formData
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    showToast(editId ? 'Data perizinan berhasil diperbarui!' : 'Data perizinan berhasil ditambahkan!', 'success');
+                    if (!editId) {
+                        form.reset();
+                        iconOptions.forEach(opt => opt.classList.remove('selected'));
+                        fileDisplay.classList.add('hidden');
+                        geojsonData = null;
+                        iconInput.value = '';
+                        document.getElementById('lokasi-container').innerHTML = '';
+                        updateLokasiEmpty();
+                    } else {
+                        setTimeout(() => window.location.href = 'perizinan.html', 1500);
+                    }
+                } else {
+                    showToast(result.message || 'Gagal menyimpan data.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal terhubung ke server Laravel.', 'error');
+            } finally {
+                btnSubmit.innerHTML = `<i class="ph ph-floppy-disk"></i> Simpan Data`;
+                btnSubmit.disabled = false;
+            }
+        });
+
+        function showToast(message, type) {
+            toastMessage.textContent = message;
+            toast.className = 'p-4 mb-4 text-sm rounded-lg';
+            toast.classList.add(type === 'success' ? 'bg-green-100' : 'bg-red-100',
+                                type === 'success' ? 'text-green-700' : 'text-red-700',
+                                'border',
+                                type === 'success' ? 'border-green-200' : 'border-red-200');
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
+        }
+
+        // ─── INIT ───────────────────────────────────────────────────
+        async function fetchAndPopulateData() {
+            if (!editId) return;
+
+            document.getElementById('page-title').textContent = 'Ubah Data Perizinan';
+            document.getElementById('page-subtitle').textContent = 'Perbarui detail permohonan izin yang sudah ada.';
+            document.getElementById('btn-submit').innerHTML = `<i class="ph ph-floppy-disk"></i> Perbarui Data`;
+
+            try {
+                const response = await fetch(`http://localhost:8000/api/perizinan/${editId}`);
+                const result = await response.json();
+                if (!result.success) return;
+
+                const data = result.data;
+                document.getElementById('nomor_izin').value = data.nomor_izin;
+                document.getElementById('pemohon').value = data.pemohon;
+                document.getElementById('jenis_izin').value = data.jenis_izin;
+                updateSubJenis();
+                document.getElementById('sub_jenis').value = data.sub_jenis;
+                document.getElementById('tanggal_terbit').value = data.tanggal_terbit;
+                document.getElementById('tanggal_akhir').value = data.tanggal_akhir || '';
+                const pnbpStr = String(data.pnbp || 0).replace(/\D/g, '');
+                document.getElementById('pnbp').value = pnbpStr === '' ? '' : pnbpStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                handleTanggalAkhirVisibility();
+
+                // Icon Picker
+                if (data.icon) {
+                    iconInput.value = data.icon;
+                    iconOptions.forEach(opt => {
+                        if (opt.dataset.icon === data.icon) opt.classList.add('selected');
+                        else opt.classList.remove('selected');
+                    });
+                }
+
+                // GeoJSON
+                if (data.geojson) {
+                    geojsonData = data.geojson;
+                    fileText.textContent = "Data geospasial tersimpan";
+                    fileDisplay.classList.remove('hidden');
+                }
+
+                // Lokasi
+                if (data.lokasi && data.lokasi.length > 0) {
+                    data.lokasi.forEach((loc, i) => {
+                        tambahLokasi();
+                        const rows = document.querySelectorAll('#lokasi-container > div');
+                        const row = rows[rows.length - 1];
+                        
+                        const selSatker = row.querySelector('.sel-satker');
+                        const selPpk = row.querySelector('.sel-ppk');
+                        const selRuas = row.querySelector('.sel-ruas');
+                        
+                        selSatker.value = loc.satker_id;
+                        
+                        // Trigger Satker Change for PPK
+                        const filteredPpk = allPpk.filter(p => String(p.satker_id) === String(loc.satker_id));
+                        buildSelectOptions(selPpk, filteredPpk, p => p.id, p => p.nama_ppk, '-- Pilih PPK --');
+                        selPpk.disabled = false;
+                        selPpk.value = loc.ppk_id;
+
+                        // Trigger PPK Change for Ruas
+                        const filteredRuas = allRuasJalan.filter(r => String(r.ppk_id) === String(loc.ppk_id));
+                        buildSelectOptions(selRuas, filteredRuas, r => r.nama_ruas, r => r.nama_ruas, '-- Pilih Ruas Jalan --');
+                        selRuas.disabled = false;
+                        selRuas.value = loc.nama_ruas_jalan;
+
+                        row.querySelector('.inp-sta-awal').value = loc.sta_awal || '';
+                        row.querySelector('.inp-sta-akhir').value = loc.sta_akhir || '';
+                    });
+                }
+
+            } catch (err) {
+                console.error("Error fetching data:", err);
+                showToast('Gagal mengambil data perizinan.', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchAllMasterData();
+            updateLokasiEmpty();
+            document.getElementById('btn-tambah-lokasi').addEventListener('click', tambahLokasi);
+            
+            if (editId) {
+                await fetchAndPopulateData();
+            }
+        });
+    </script>
+</body>
+</html>
