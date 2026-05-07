@@ -1,0 +1,46 @@
+PANDUAN UPLOAD SISTEM INVENTARISASI PERIZINAN KE SERVER
+
+Sistem ini terdiri dari tiga komponen utama:
+1. Frontend (Vite/Static HTML di folder 'app')
+2. Backend (Laravel di folder 'backend')
+3. WhatsApp Bot (Node.js di folder 'botWA')
+
+Langkah-langkah Deployment:
+
+1. PERSIAPAN SERVER (REKOMENDASI VPS):
+   - Gunakan Ubuntu 22.04 LTS.
+   - Install: PHP 8.2+, MySQL, Nginx, Node.js, Composer.
+
+2. DATABASE:
+   - Export database lokal (.sql) via phpMyAdmin.
+   - Import ke database MySQL di server.
+
+3. BACKEND (LARAVEL):
+   - Upload folder 'backend' ke server.
+   - Jalankan: composer install --optimize-autoloader --no-dev
+   - Sesuaikan file .env (DB_DATABASE, DB_USERNAME, DB_PASSWORD, APP_URL).
+   - Jalankan: php artisan migrate, php artisan key:generate, php artisan storage:link.
+
+4. FRONTEND (VITE/APP):
+   - Ubah URL API di file JS (app/app.js, dashboard.js, dll) dari localhost ke domain server.
+   - Jalankan 'npm run build' di folder root.
+   - Upload isi folder 'dist' ke folder public web server.
+
+5. WHATSAPP BOT:
+   - Upload folder 'botWA' ke server.
+   - Jalankan 'npm install'.
+   - Gunakan PM2 untuk menjalankan bot:
+     npm install -g pm2
+     pm2 start bot.js --name "wa-bot"
+     pm2 save
+     pm2 startup
+
+6. KONFIGURASI NGINX (CONTOH):
+   - Arahkan domain utama ke folder frontend.
+   - Arahkan subdomain (misal api.domain.com) ke folder backend/public.
+
+7. KEAMANAN:
+   - Gunakan Certbot (Let's Encrypt) untuk SSL (HTTPS).
+   - Jalankan: sudo certbot --nginx -d domain.com -d api.domain.com
+
+Catatan: Pastikan port yang dibutuhkan (80, 443, 3000, 8000) sudah dibuka di firewall server.

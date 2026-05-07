@@ -1,0 +1,23 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# WhatsApp Bot Sessions & Cache
+botWA/sessions/
+botWA/.wwebjs_cache/
+botWA/.wwebjs_auth/
+botWA/node_modules/
+
+# Vite / Build outputs
+dist/
+.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.local
+
+# Git conflict files
+*.orig
