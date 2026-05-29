@@ -1,0 +1,123 @@
+/* Custom Scrollbar for sidebars and panels */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #CBD5E0;
+    border-radius: 20px;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: #A0AEC0;
+}
+
+/* Leaflet Map overrides to fit the design */
+.leaflet-container {
+    font-family: 'Inter', sans-serif;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.leaflet-popup-content {
+    margin: 16px;
+    line-height: 1.5;
+}
+
+.leaflet-popup-close-button {
+    color: #A0AEC0 !important;
+    top: 8px !important;
+    right: 8px !important;
+}
+
+/* Custom Popup Style */
+.custom-popup .title {
+    font-weight: 700;
+    color: #1E3A5F;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.custom-popup .subtitle {
+    font-size: 11px;
+    color: #718096;
+    margin-bottom: 12px;
+}
+
+.custom-popup .info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
+.custom-popup .info-label {
+    color: #A0AEC0;
+    font-weight: 600;
+}
+
+.custom-popup .info-value {
+    color: #2D3748;
+    font-weight: 500;
+}
+
+.custom-popup .action-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background-color: #3182CE;
+    color: white;
+    padding: 8px;
+    border-radius: 6px;
+    margin-top: 12px;
+    font-weight: 600;
+    font-size: 12px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.custom-popup .action-btn:hover {
+    background-color: #2B6CB0;
+    color: white;
+}
+
+/* Toggle Checkbox Switch Style */
+.toggle-checkbox {
+    appearance: none;
+    width: 36px;
+    height: 20px;
+    background: #E2E8F0;
+    border-radius: 9999px;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    transition: background 0.3s;
+}
+
+.toggle-checkbox::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.toggle-checkbox:checked {
+    background: #3182CE;
+}
+
+.toggle-checkbox:checked::after {
+    transform: translateX(16px);
+}

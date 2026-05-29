@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,27 +45,25 @@
         </div>
 
         <nav class="flex-1 p-4 space-y-1 mt-4">
-            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
                 <i class="ph ph-squares-four text-xl group-hover:text-accent"></i>
                 <span class="font-semibold text-sm">Dashboard</span>
             </a>
-            <a href="peta.html" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
+            <a href="{{ route('peta') }}" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
                 <i class="ph ph-map-trifold text-xl group-hover:text-accent"></i>
                 <span class="font-semibold text-sm">Peta Pemanfaatan</span>
             </a>
-            <a href="perizinan.html" class="flex items-center gap-3 px-4 py-3 bg-blue-50 text-accent rounded-xl transition-all group">
+            <a href="{{ route('perizinan_view') }}" class="flex items-center gap-3 px-4 py-3 bg-blue-50 text-accent rounded-xl transition-all group">
                 <i class="ph-fill ph-file-text text-xl"></i>
                 <span class="font-bold text-sm">Daftar Perizinan</span>
             </a>
             <div id="admin-menu" class="hidden">
-                <a href="manajemen_user.html" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
+                <a href="{{ route('users') }}" class="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition-all group">
                     <i class="ph ph-users-three text-xl group-hover:text-accent"></i>
                     <span class="font-semibold text-sm">Manajemen User</span>
                 </a>
             </div>
         </nav>
-
-
 
         <div class="p-4 border-t border-gray-50">
             <div class="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
@@ -85,7 +83,7 @@
         function logout() {
             localStorage.removeItem('isLoggedIn');
             localStorage.removeItem('userRole');
-            window.location.href = 'index.html';
+            window.location.href = "{{ route('home') }}";
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -94,14 +92,8 @@
             const adminMenu = document.getElementById('admin-menu');
 
             if (!isLoggedIn) {
-                window.location.href = 'login.html';
+                window.location.href = "{{ route('login') }}";
                 return;
-            }
-
-            // Self-healing untuk sesi lama
-            if (isLoggedIn && !userRole) {
-                localStorage.setItem('userRole', 'superadmin');
-                window.location.reload();
             }
 
             if (isLoggedIn && userRole === 'superadmin' && adminMenu) {
@@ -126,13 +118,13 @@
                     <p class="text-sm text-gray-500 mt-1">Kelola data permohonan izin pemanfaatan bagian-bagian jalan.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="test_wa.html" class="bg-green-50 text-green-700 border border-green-200 px-4 py-2 text-sm font-medium rounded-lg shadow-sm hover:bg-green-100 flex items-center gap-2 transition-colors">
+                    <a href="{{ route('test-wa') }}" class="bg-green-50 text-green-700 border border-green-200 px-4 py-2 text-sm font-medium rounded-lg shadow-sm hover:bg-green-100 flex items-center gap-2 transition-colors">
                         <i class="ph ph-whatsapp-logo"></i> Test Bot
                     </a>
                     <button id="export-btn" class="bg-white border border-gray-200 text-gray-700 px-4 py-2 text-sm font-medium rounded-lg shadow-sm hover:bg-gray-50 flex items-center gap-2 transition-colors">
                         <i class="ph ph-export"></i> Export
                     </button>
-                    <a href="admin.html" class="bg-accent text-white px-4 py-2 text-sm font-medium rounded-lg shadow-sm hover:bg-blue-700 flex items-center gap-2 transition-colors">
+                    <a href="{{ route('admin') }}" class="bg-accent text-white px-4 py-2 text-sm font-medium rounded-lg shadow-sm hover:bg-blue-700 flex items-center gap-2 transition-colors">
                         <i class="ph ph-plus-circle"></i> Tambah Izin Baru
                     </a>
                 </div>
@@ -198,24 +190,16 @@
                 <!-- Pagination -->
                 <div class="p-4 border-t border-gray-100 flex items-center justify-between bg-gray-50">
                     <div class="text-xs text-gray-500">
-                        Menampilkan <span class="font-medium text-gray-700">1</span> sampai <span class="font-medium text-gray-700">4</span> dari <span class="font-medium text-gray-700">10</span> data
+                        Menampilkan <span class="font-medium text-gray-700">1</span> sampai <span class="font-medium text-gray-700">0</span> dari <span class="font-medium text-gray-700">0</span> data
                     </div>
                     <div class="flex gap-1">
-                        <button class="px-3 py-1.5 border border-gray-200 bg-white text-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors" disabled>
-                            <i class="ph ph-caret-left"></i>
-                        </button>
-                        <button class="px-3 py-1.5 border-none bg-accent text-white rounded font-medium text-sm shadow-sm">1</button>
-                        <button class="px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded hover:bg-gray-50 transition-colors">
-                            <i class="ph ph-caret-right"></i>
-                        </button>
+                        <!-- Pagination buttons will be generated by JS -->
                     </div>
                 </div>
             </div>
 
         </div>
     </main>
-
-    <!-- DELETE MODAL -->
 
     <!-- WA NOTIF CONFIRM MODAL -->
     <div id="wa-confirm-modal" class="fixed inset-0 z-[70] flex items-center justify-center hidden">
@@ -366,7 +350,8 @@
     </div>
 
     <script>
-        const API_URL = '/api/perizinan';
+        window.API_BASE_URL = "{{ url('/') }}";
+        const API_URL = (window.API_BASE_URL || '') + '/api/perizinan';
         let allPerizinanData = [];
         let filteredPerizinanData = [];
         let allRuasNames = [];
@@ -377,7 +362,7 @@
         
         async function fetchRuasJalan() {
             try {
-                const response = await fetch('/api/ruas-jalan');
+                const response = await fetch((window.API_BASE_URL || '') + '/api/ruas-jalan');
                 const result = await response.json();
                 if (result.success) {
                     allRuasNames = [...new Set(result.data.map(r => r.nama_ruas))].sort();
@@ -393,10 +378,11 @@
             try {
                 const response = await fetch(API_URL);
                 const result = await response.json();
+                console.log("API Result:", result);
 
                 if (result.success) {
                     allPerizinanData = result.data;
-                    filteredPerizinanData = [...allPerizinanData]; // Initial filter is all data
+                    filteredPerizinanData = [...allPerizinanData]; 
                     currentPage = 1;
                     renderTable();
                 } else {
@@ -406,7 +392,7 @@
 
             } catch (error) {
                 console.error('Error saat fetch API:', error);
-                tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-4 text-center text-red-500">Terjadi kesalahan jaringan. Pastikan Laravel Backend sudah berjalan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-4 text-center text-red-500">Terjadi kesalahan jaringan.</td></tr>`;
             }
         }
 
@@ -416,22 +402,19 @@
 
             const data = filteredPerizinanData;
             
-            // Simpan semua data ke map agar bisa diakses by ID dari onclick
             window._permitMap = {};
             allPerizinanData.forEach(p => { window._permitMap[p.id] = p; });
             
             if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-4 text-center text-gray-500">Tidak ada data yang sesuai dengan kriteria pencarian.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-4 text-center text-gray-500">Tidak ada data.</td></tr>`;
                 updatePaginationInfo(0, 0, 0);
                 renderPagination(0);
                 return;
             }
 
-            // Calculate Pagination
             const totalItems = data.length;
             const totalPages = Math.ceil(totalItems / itemsPerPage);
             
-            // Ensure currentPage is valid
             if (currentPage > totalPages) currentPage = totalPages;
             if (currentPage < 1) currentPage = 1;
 
@@ -462,6 +445,70 @@
                     }).format(number);
                 };
 
+                // Build Lokasi HTML
+                let lokasiHtml = '-';
+                if (item.lokasi && item.lokasi.length > 0) {
+                    lokasiHtml = '<div class="flex flex-col gap-1.5">';
+                    item.lokasi.forEach(l => {
+                        // LOGIKA DISAMAKAN DENGAN PETA (app.js)
+                        // 1. Coba ambil dari GeoJSON jika ada (Prioritas Utama)
+                        let lat, lng;
+                        let foundInGeo = false;
+
+                        if (item.geojson) {
+                            try {
+                                const geo = typeof item.geojson === 'string' ? JSON.parse(item.geojson) : item.geojson;
+                                const firstFeature = geo.features ? geo.features[0] : geo;
+                                if (firstFeature && firstFeature.geometry) {
+                                    const coords = firstFeature.geometry.coordinates;
+                                    // GeoJSON format [lng, lat]
+                                    lng = coords[0];
+                                    lat = coords[1];
+                                    foundInGeo = true;
+                                }
+                            } catch (e) { console.warn("GeoJSON parse error", e); }
+                        }
+
+                        // 2. Jika tidak ada di GeoJSON, coba parse dari sta_awal (Fallback)
+                        if (!foundInGeo) {
+                            const rawCoords = l.sta_awal ? l.sta_awal.replace(/[^\d\.\-\, ]/g, ' ').split(/[\s,]+/).filter(p => p.length > 0) : null;
+                            if (rawCoords && rawCoords.length >= 2) {
+                                let val1 = parseFloat(rawCoords[0]);
+                                let val2 = parseFloat(rawCoords[1]);
+                                if (!isNaN(val1) && !isNaN(val2)) {
+                                    // Deteksi Lintang vs Bujur (NTB: Lat ~ -8, Lng ~ 116)
+                                    if (Math.abs(val1) < 20 && Math.abs(val2) > 90) {
+                                        lat = val1; lng = val2;
+                                    } else if (Math.abs(val2) < 20 && Math.abs(val1) > 90) {
+                                        lat = val2; lng = val1;
+                                    } else {
+                                        lat = val1; lng = val2;
+                                    }
+                                    foundInGeo = true;
+                                }
+                            }
+                        }
+
+                        let svUrl = foundInGeo ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}` : null;
+                        
+                        lokasiHtml += `
+                            <div class="flex items-center gap-1">
+                                ${svUrl ? `
+                                <a href="${svUrl}" target="_blank" class="bg-amber-500 text-white px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5 hover:bg-amber-600 transition-colors shadow-sm" title="Buka Street View">
+                                    <i class="ph-fill ph-person-simple-walk"></i> ${l.nama_ruas_jalan}
+                                </a>` : `
+                                <span class="bg-gray-100 text-gray-400 px-2.5 py-1 rounded-md text-[11px] font-semibold inline-flex items-center gap-1.5">
+                                    <i class="ph-fill ph-warning"></i> ${l.nama_ruas_jalan}
+                                </a>`}
+                                <a href="{{ url('/peta') }}?id=${item.id}&road=${encodeURIComponent(l.nama_ruas_jalan)}" class="bg-blue-50 border border-blue-100 text-blue-600 p-1 rounded-md hover:bg-blue-100 transition-colors" title="Lihat di Peta">
+                                    <i class="ph-fill ph-map-pin text-sm"></i>
+                                </a>
+                            </div>
+                        `;
+                    });
+                    lokasiHtml += '</div>';
+                }
+
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50 transition-colors group';
                 
@@ -477,51 +524,27 @@
                         <div class="font-semibold text-primary">${item.pemohon}</div>
                         <div class="flex flex-wrap gap-1 mt-1">
                             <span class="text-[10px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded uppercase font-medium">Izin ${(item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin}</span>
-                            <span class="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase font-bold border border-blue-100">${item.satker ? item.satker.nama_satker : 'Satker Tidak Diketahui'}</span>
+                            <span class="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase font-bold border border-blue-100">${item.satker ? item.satker.nama_satker : '-'}</span>
                         </div>
                     </td>
                     <td class="px-5 py-4">
-                        <div class="font-medium text-gray-700">
-                            ${item.lokasi && item.lokasi.length > 0 
-                                ? `<div class="flex flex-col gap-1.5">` + 
-                                    item.lokasi.map(l => {
-                                        const coords = l.koordinat_awal ? l.koordinat_awal.split(',') : null;
-                                        const svUrl = coords && coords.length === 2 ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${coords[0].trim()},${coords[1].trim()}` : null;
-                                        
-                                        return `
-                                            <div class="flex items-center gap-1">
-                                                <a href="peta.html?id=${item.id}" class="bg-blue-50 border border-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-[11px] font-semibold inline-flex items-center gap-1.5 hover:bg-blue-100 transition-colors">
-                                                    <i class="ph-fill ph-map-pin"></i> ${l.nama_ruas_jalan}
-                                                </a>
-                                                ${svUrl ? `
-                                                <a href="${svUrl}" target="_blank" class="bg-amber-50 border border-amber-100 text-amber-600 p-1 rounded-md hover:bg-amber-100 transition-colors" title="Lihat di Street View">
-                                                    <i class="ph-fill ph-person-simple-walk text-sm"></i>
-                                                </a>` : ''}
-                                            </div>
-                                        `;
-                                    }).join('') +
-                                    `</div>`
-                                : '-'}
-                        </div>
+                        <div class="font-medium text-gray-700">${lokasiHtml}</div>
                     </td>
                     <td class="px-5 py-4 text-right">
                         <div class="font-medium text-gray-800">${formatRupiah(item.pnbp || 0)}</div>
-                        <div class="text-[10px] text-gray-500 mt-1">Cek Detail</div>
                     </td>
                     <td class="px-5 py-4">
                         <div class="flex flex-col gap-1.5">
                             <div class="text-xs font-bold text-gray-700">${item.no_hp || '-'}</div>
                             ${item.no_hp ? `
-                            <div class="flex items-center gap-1">
+                            <div class="flex items-center gap-1.5">
                                 <a href="https://wa.me/${item.no_hp.replace(/[^\d]/g, '').replace(/^0/, '62')}" target="_blank"
-                                    class="inline-flex items-center gap-1 text-[10px] font-bold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2 py-1 rounded-md border border-green-200 transition-colors"
-                                    title="Buka Chat WhatsApp">
-                                    <i class="ph-fill ph-whatsapp-logo text-sm"></i> Chat
+                                    class="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg shadow-sm shadow-green-100 transition-all">
+                                    <i class="ph-fill ph-whatsapp-logo text-sm"></i> CHAT
                                 </a>
                                 <button onclick="kirimNotifWA(${item.id})"
-                                    class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:bg-blue-600 hover:text-white bg-blue-50 px-2 py-1 rounded-md border border-blue-200 transition-colors"
-                                    title="Kirim Notifikasi via Bot">
-                                    <i class="ph ph-paper-plane-tilt text-sm"></i> Notif
+                                    class="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-blue-500 hover:bg-blue-600 px-3 py-1.5 rounded-lg shadow-sm shadow-blue-100 transition-all">
+                                    <i class="ph-fill ph-paper-plane-tilt text-sm"></i> NOTIF
                                 </button>
                             </div>` : ''}
                         </div>
@@ -531,7 +554,7 @@
                     </td>
                     <td class="px-5 py-4 text-center">
                         <div class="flex items-center justify-center gap-2">
-                            <a href="admin.html?id=${item.id}" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Ubah Data">
+                            <a href="{{ url('/admin') }}?id=${item.id}" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Ubah Data">
                                 <i class="ph ph-pencil-simple text-lg"></i>
                             </a>
                             <button onclick="hapusPerizinan(${item.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Hapus Data">
@@ -557,54 +580,33 @@
 
             paginationContainer.innerHTML = '';
 
-            // Previous Button
             const prevBtn = document.createElement('button');
             prevBtn.className = `px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`;
             prevBtn.disabled = currentPage === 1;
             prevBtn.innerHTML = '<i class="ph ph-caret-left"></i>';
-            prevBtn.onclick = () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderTable();
-                }
-            };
+            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTable(); } };
             paginationContainer.appendChild(prevBtn);
 
-            // Page Numbers
             const maxVisiblePages = 5;
             let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
             let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-            if (endPage - startPage + 1 < maxVisiblePages) {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1);
-            }
+            if (endPage - startPage + 1 < maxVisiblePages) startPage = Math.max(1, endPage - maxVisiblePages + 1);
 
             for (let i = startPage; i <= endPage; i++) {
                 const pageBtn = document.createElement('button');
-                if (i === currentPage) {
-                    pageBtn.className = "px-3 py-1.5 border-none bg-accent text-white rounded font-medium text-sm shadow-sm";
-                } else {
-                    pageBtn.className = "px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded hover:bg-gray-50 transition-colors text-sm";
-                }
+                pageBtn.className = i === currentPage 
+                    ? "px-3 py-1.5 border-none bg-accent text-white rounded font-medium text-sm shadow-sm"
+                    : "px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded hover:bg-gray-50 transition-colors text-sm";
                 pageBtn.innerText = i;
-                pageBtn.onclick = () => {
-                    currentPage = i;
-                    renderTable();
-                };
+                pageBtn.onclick = () => { currentPage = i; renderTable(); };
                 paginationContainer.appendChild(pageBtn);
             }
 
-            // Next Button
             const nextBtn = document.createElement('button');
             nextBtn.className = `px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors ${currentPage === totalPages || totalPages === 0 ? 'opacity-50 cursor-not-allowed' : ''}`;
             nextBtn.disabled = currentPage === totalPages || totalPages === 0;
             nextBtn.innerHTML = '<i class="ph ph-caret-right"></i>';
-            nextBtn.onclick = () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderTable();
-                }
-            };
+            nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderTable(); } };
             paginationContainer.appendChild(nextBtn);
         }
 
@@ -613,17 +615,11 @@
             const jenisValue = document.getElementById('filter-jenis').value;
 
             filteredPerizinanData = allPerizinanData.filter(item => {
-                // Filter Jenis
                 let matchJenis = true;
                 if (jenisValue !== '') {
-                    if (jenisValue === 'dispensasi') {
-                        matchJenis = item.jenis_izin === 'dispensasi';
-                    } else {
-                        matchJenis = item.sub_jenis === jenisValue;
-                    }
+                    if (jenisValue === 'dispensasi') matchJenis = item.jenis_izin === 'dispensasi';
+                    else matchJenis = item.sub_jenis === jenisValue;
                 }
-
-                // Filter Search
                 let matchSearch = true;
                 if (searchTerm !== '') {
                     const pemohon = (item.pemohon || '').toLowerCase();
@@ -631,11 +627,9 @@
                     const ruasJalan = item.lokasi ? item.lokasi.map(l => l.nama_ruas_jalan).join(' ').toLowerCase() : '';
                     matchSearch = pemohon.includes(searchTerm) || noIzin.includes(searchTerm) || ruasJalan.includes(searchTerm);
                 }
-
                 return matchJenis && matchSearch;
             });
 
-            // Sort Data
             const sortOrder = document.getElementById('sort-order').value;
             filteredPerizinanData.sort((a, b) => {
                 const dateA = new Date(a.tanggal_terbit);
@@ -647,26 +641,8 @@
             renderTable();
         }
 
-        // Event Listeners
         document.getElementById('sort-order').addEventListener('change', filterData);
-        document.getElementById('search-input').addEventListener('input', (e) => {
-            const val = e.target.value;
-            const datalist = document.getElementById('ruas-list');
-            
-            if (val.length >= 2) {
-                if (datalist && datalist.children.length === 0) {
-                    allRuasNames.forEach(name => {
-                        const option = document.createElement('option');
-                        option.value = name;
-                        datalist.appendChild(option);
-                    });
-                }
-            } else {
-                if (datalist) datalist.innerHTML = '';
-            }
-            
-            filterData();
-        });
+        document.getElementById('search-input').addEventListener('input', filterData);
         document.getElementById('filter-jenis').addEventListener('change', filterData);
         document.getElementById('items-per-page').addEventListener('change', (e) => {
             itemsPerPage = parseInt(e.target.value);
@@ -674,41 +650,23 @@
             renderTable();
         });
 
-        // ====================================================
-        // KIRIM NOTIFIKASI VIA BOT WHATSAPP
-        // ====================================================
-        const WA_BOT_URL = '/api/wa-test';
+        // WhatsApp Notif Logic
+        const WA_BOT_URL = "{{ url('api/wa-test') }}";
+        let pendingNotifItem = null;
 
-        // Toast Notification
         function showToast(message, type = 'success') {
             const existing = document.getElementById('wa-toast');
             if (existing) existing.remove();
-
-            const colors = {
-                success: 'bg-green-600',
-                error:   'bg-red-600',
-                loading: 'bg-blue-600'
-            };
-            const icons = {
-                success: 'ph-check-circle',
-                error:   'ph-x-circle',
-                loading: 'ph-circle-notch animate-spin'
-            };
-
             const toast = document.createElement('div');
             toast.id = 'wa-toast';
-            toast.className = `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl text-white text-sm font-semibold ${colors[type]} transition-all duration-300 opacity-0`;
-            toast.innerHTML = `<i class="ph ${icons[type]} text-xl"></i><span>${message}</span>`;
+            toast.className = `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl text-white text-sm font-semibold ${type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600'} transition-all duration-300 opacity-0`;
+            toast.innerHTML = `<span>${message}</span>`;
             document.body.appendChild(toast);
-
             setTimeout(() => toast.style.opacity = '1', 10);
-            if (type !== 'loading') {
-                setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
-            }
+            if (type !== 'loading') setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
             return toast;
         }
 
-        // Format tanggal Indonesia
         function formatTglID(dateStr) {
             if (!dateStr) return '-';
             const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -716,7 +674,6 @@
             return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
         }
 
-        // Hitung sisa hari
         function hitungSisaHari(dateStr) {
             if (!dateStr) return null;
             const akhir = new Date(dateStr);
@@ -725,244 +682,99 @@
             return Math.ceil((akhir - sekarang) / (1000 * 60 * 60 * 24));
         }
 
-        // Build pesan notifikasi berdasarkan sisa hari
         function buildPesanNotif(item) {
             const jenis      = (item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin;
             const tglFormat  = formatTglID(item.tanggal_akhir);
             const ruasJalan  = item.lokasi ? item.lokasi.map(l => l.nama_ruas_jalan).filter(Boolean).join(', ') : '-';
             const sisaHari   = hitungSisaHari(item.tanggal_akhir);
 
-            // Early Warning (H-90 atau H-60) — tone formal
-            if (sisaHari !== null && sisaHari >= 60) {
-                return `📋 *PEMBERITAHUAN AWAL — MASA BERLAKU IZIN*\n\n` +
-                       `Yth. *${item.pemohon}*,\n\n` +
-                       `Kami dari *Balai Pelaksanaan Jalan Nasional (BPJN) NTB* mengingatkan bahwa ` +
-                       `izin pemanfaatan ruang milik jalan Anda akan berakhir dalam *${sisaHari} hari* ` +
-                       `ke depan (pada tanggal *${tglFormat}*).\n\n` +
-                       `📌 *Nomor Izin:* ${item.nomor_izin}\n` +
-                       `📌 *Jenis Izin:* ${jenis}\n` +
-                       `📌 *Ruas Jalan:* ${ruasJalan}\n` +
-                       `📌 *Masa Berlaku Berakhir:* ${tglFormat}\n\n` +
-                       `Jika Anda masih memerlukan izin tersebut, kami menyarankan untuk ` +
-                       `*segera mempersiapkan dokumen perpanjangan* agar proses dapat berjalan ` +
-                       `tepat waktu sebelum izin berakhir.\n\n` +
-                       `📞 Untuk informasi lebih lanjut, silakan menghubungi kantor BPJN NTB.\n\n` +
-                       `Terima kasih atas perhatian dan kerja samanya.\n\n` +
-                       `_Pesan ini dikirim otomatis oleh Sistem Informasi Perizinan Siperjalan BPJN NTB._`;
-            }
-
-            // Urgent (H-30 ke bawah)
-            const urgencyIcon = sisaHari !== null
-                ? (sisaHari <= 1 ? '🚨' : sisaHari <= 7 ? '⚠️' : sisaHari <= 14 ? '🔔' : '📢')
-                : '📢';
-            const sisaLabel = sisaHari !== null ? `*${sisaHari} hari lagi*` : 'segera';
-            const urgentNote = sisaHari !== null && sisaHari <= 7
-                ? `⚡ *Mohon segera menghubungi kantor BPJN NTB* untuk proses perpanjangan sebelum izin berakhir.\n\n`
-                : `Mohon segera melakukan permohonan perpanjangan jika masih diperlukan.\n\n`;
-
-            return `${urgencyIcon} *PERINGATAN MASA BERLAKU IZIN — ${sisaHari !== null ? sisaHari + ' HARI LAGI' : 'SEGERA'}*\n\n` +
-                   `Yth. *${item.pemohon}*,\n\n` +
-                   `Kami menginformasikan bahwa izin pemanfaatan bagian-bagian jalan Anda:\n` +
-                   `📌 *Nomor Izin:* ${item.nomor_izin}\n` +
-                   `📌 *Jenis:* ${jenis}\n` +
-                   `📌 *Ruas Jalan:* ${ruasJalan}\n` +
-                   `📌 *Tgl Berakhir:* ${tglFormat}\n\n` +
-                   `Akan berakhir dalam ${sisaLabel}.\n\n` +
-                   urgentNote +
-                   `Terima kasih.\n\n` +
-                   `_Pesan ini dikirim otomatis oleh Sistem Siperjalan BPJN NTB._`;
+            return `📢 *PEMBERITAHUAN MASA BERLAKU IZIN*\n\nYth. *${item.pemohon}*,\n\nIzin pemanfaatan jalan Anda akan berakhir dalam *${sisaHari} hari* (pada tanggal *${tglFormat}*).\n\n📌 *Nomor Izin:* ${item.nomor_izin}\n📌 *Jenis:* ${jenis}\n📌 *Ruas Jalan:* ${ruasJalan}\n\nTerima kasih.\n\n_Sistem Siperjalan BPJN NTB_`;
         }
-
-        // Kirim notifikasi — tampilkan konfirmasi dulu
-        let pendingNotifItem = null;
 
         function kirimNotifWA(permitId) {
             const item = window._permitMap ? window._permitMap[permitId] : null;
-            if (!item) {
-                showToast('Data perizinan tidak ditemukan.', 'error');
-                return;
-            }
+            if (!item) return;
             pendingNotifItem = item;
-            const sisaHari  = hitungSisaHari(item.tanggal_akhir);
-            const tglFormat = formatTglID(item.tanggal_akhir);
-
-            // Isi modal konfirmasi
             document.getElementById('wa-modal-pemohon').textContent  = item.pemohon;
             document.getElementById('wa-modal-no-hp').textContent    = item.no_hp;
             document.getElementById('wa-modal-no-izin').textContent  = item.nomor_izin;
-            document.getElementById('wa-modal-tgl-akhir').textContent = tglFormat;
-
-            const sisaEl = document.getElementById('wa-modal-sisa');
-            if (sisaHari !== null) {
-                sisaEl.textContent = `${sisaHari} hari lagi`;
-                sisaEl.className = sisaHari <= 7 ? 'font-bold text-red-600' : sisaHari <= 30 ? 'font-bold text-yellow-600' : 'font-bold text-blue-600';
-            } else {
-                sisaEl.textContent = 'Sudah kadaluarsa';
-                sisaEl.className = 'font-bold text-gray-500';
-            }
-
-            // Preview pesan
+            document.getElementById('wa-modal-tgl-akhir').textContent = formatTglID(item.tanggal_akhir);
+            document.getElementById('wa-modal-sisa').textContent = `${hitungSisaHari(item.tanggal_akhir)} hari lagi`;
             document.getElementById('wa-modal-preview').textContent = buildPesanNotif(item);
-
             document.getElementById('wa-confirm-modal').classList.remove('hidden');
         }
 
-        document.getElementById('wa-cancel-btn').addEventListener('click', () => {
-            document.getElementById('wa-confirm-modal').classList.add('hidden');
-            pendingNotifItem = null;
-        });
-
         document.getElementById('wa-send-btn').addEventListener('click', async () => {
             if (!pendingNotifItem) return;
-
             const btn = document.getElementById('wa-send-btn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Mengirim...';
             document.getElementById('wa-confirm-modal').classList.add('hidden');
-
-            const toast = showToast('Mengirim notifikasi WhatsApp...', 'loading');
-
-            const message = buildPesanNotif(pendingNotifItem);
-
+            const toast = showToast('Mengirim...', 'loading');
             try {
                 const response = await fetch(WA_BOT_URL, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ number: pendingNotifItem.no_hp, message })
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ number: pendingNotifItem.no_hp, message: buildPesanNotif(pendingNotifItem) })
                 });
-                const result = await response.json();
-
                 toast.remove();
-                if (response.ok && result.success) {
-                    showToast(`✅ Notifikasi berhasil dikirim ke ${pendingNotifItem.no_hp}`, 'success');
-                } else {
-                    showToast(`Gagal mengirim: ${result.message || result.error || 'Error tidak diketahui'}`, 'error');
-                }
-            } catch (err) {
-                toast.remove();
-                showToast('Gagal menghubungi server. Pastikan Laravel dan Bot WA sudah berjalan.', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> Kirim Sekarang';
-                pendingNotifItem = null;
-            }
+                if (response.ok) showToast('Berhasil dikirim');
+                else showToast('Gagal mengirim', 'error');
+            } catch (err) { toast.remove(); showToast('Error jaringan', 'error'); }
+            finally { btn.disabled = false; pendingNotifItem = null; }
         });
 
+        // Delete Logic
         let permitIdToDelete = null;
-
-        function hapusPerizinan(id) {
-            permitIdToDelete = id;
-            document.getElementById('delete-modal').classList.remove('hidden');
-        }
-
-        document.getElementById('cancel-delete').addEventListener('click', () => {
-            document.getElementById('delete-modal').classList.add('hidden');
-            permitIdToDelete = null;
-        });
-
+        function hapusPerizinan(id) { permitIdToDelete = id; document.getElementById('delete-modal').classList.remove('hidden'); }
+        document.getElementById('cancel-delete').addEventListener('click', () => { document.getElementById('delete-modal').classList.add('hidden'); });
         document.getElementById('confirm-delete').addEventListener('click', async () => {
             if (!permitIdToDelete) return;
-            
-            const btn = document.getElementById('confirm-delete');
-            const originalText = btn.innerText;
-            btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Menghapus...';
-            btn.disabled = true;
-
             try {
-                const response = await fetch(`${API_URL}/${permitIdToDelete}`, {
-                    method: 'DELETE',
-                    headers: { 'Accept': 'application/json' }
-                });
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    document.getElementById('delete-modal').classList.add('hidden');
-                    fetchPerizinan(); // Refresh data
-                } else {
-                    alert(result.message || 'Gagal menghapus data.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat menghubungi server.');
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-                permitIdToDelete = null;
-            }
+                const response = await fetch(`${API_URL}/${permitIdToDelete}`, { method: 'DELETE', headers: { 'Accept': 'application/json' } });
+                if (response.ok) { document.getElementById('delete-modal').classList.add('hidden'); fetchPerizinan(); }
+            } catch (error) { console.error(error); }
+            finally { permitIdToDelete = null; }
         });
 
-        // Export Modal Control
+        // Export Modal
         const exportModal = document.getElementById('export-modal');
-        const exportBtn = document.getElementById('export-btn');
-        const closeExportModal = document.getElementById('close-export-modal');
-        const cancelExport = document.getElementById('cancel-export');
-        const confirmExport = document.getElementById('confirm-export');
-
-        exportBtn.addEventListener('click', () => {
-            if (!allPerizinanData || allPerizinanData.length === 0) {
-                alert('Tidak ada data untuk diekspor.');
-                return;
-            }
-            populateExportOptions();
+        document.getElementById('export-btn').addEventListener('click', () => {
+            if (allPerizinanData.length === 0) return;
+            const tahunSelect = document.getElementById('export-tahun');
+            const ruasSelect = document.getElementById('export-ruas');
+            const tahunSet = new Set();
+            const ruasSet = new Set();
+            allPerizinanData.forEach(item => {
+                if (item.tanggal_terbit) tahunSet.add(item.tanggal_terbit.split('-')[0]);
+                if (item.lokasi) item.lokasi.forEach(loc => ruasSet.add(loc.nama_ruas_jalan));
+            });
+            tahunSelect.innerHTML = '<option value="all">Semua Tahun</option>';
+            [...tahunSet].sort((a,b) => b-a).forEach(y => tahunSelect.innerHTML += `<option value="${y}">${y}</option>`);
+            ruasSelect.innerHTML = '<option value="all">Semua Ruas Jalan</option>';
+            [...ruasSet].sort().forEach(r => ruasSelect.innerHTML += `<option value="${r}">${r}</option>`);
             exportModal.classList.remove('hidden');
         });
 
-        function populateExportOptions() {
-            const tahunSelect = document.getElementById('export-tahun');
-            const ruasSelect = document.getElementById('export-ruas');
-            
-            const tahunSet = new Set();
-            const ruasSet = new Set();
-
-            allPerizinanData.forEach(item => {
-                if (item.tanggal_terbit) {
-                    const year = item.tanggal_terbit.split('-')[0];
-                    tahunSet.add(year);
-                }
-                if (item.lokasi) {
-                    item.lokasi.forEach(loc => ruasSet.add(loc.nama_ruas_jalan));
-                }
-            });
-
-            // Populate Tahun
-            tahunSelect.innerHTML = '<option value="all">Semua Tahun</option>';
-            [...tahunSet].sort((a,b) => b-a).forEach(y => {
-                tahunSelect.innerHTML += `<option value="${y}">${y}</option>`;
-            });
-
-            // Populate Ruas
-            ruasSelect.innerHTML = '<option value="all">Semua Ruas Jalan</option>';
-            [...ruasSet].sort().forEach(r => {
-                ruasSelect.innerHTML += `<option value="${r}">${r}</option>`;
-            });
-        }
-
-        [closeExportModal, cancelExport].forEach(el => {
+        [document.getElementById('close-export-modal'), document.getElementById('cancel-export')].forEach(el => {
             el.addEventListener('click', () => exportModal.classList.add('hidden'));
         });
 
-        confirmExport.addEventListener('click', () => {
+        document.getElementById('confirm-export').addEventListener('click', () => {
             const filterTahun = document.getElementById('export-tahun').value;
             const filterJenis = document.getElementById('export-jenis').value;
             const filterRuas = document.getElementById('export-ruas').value;
 
             let filteredData = allPerizinanData.filter(item => {
                 const matchTahun = filterTahun === 'all' || (item.tanggal_terbit && item.tanggal_terbit.startsWith(filterTahun));
-                
                 let matchJenis = filterJenis === 'all';
                 if (filterJenis !== 'all') {
                     if (filterJenis === 'dispensasi') matchJenis = item.jenis_izin === 'dispensasi';
                     else matchJenis = item.sub_jenis === filterJenis;
                 }
-
                 let matchRuas = filterRuas === 'all';
                 if (filterRuas !== 'all' && item.lokasi) {
                     matchRuas = item.lokasi.some(l => l.nama_ruas_jalan === filterRuas);
                 }
-
                 return matchTahun && matchJenis && matchRuas;
             });
 
@@ -971,8 +783,7 @@
                 return;
             }
 
-            // --- MODERN STYLED EXPORT ---
-            const header = ["NO", "NOMOR IZIN", "TANGGAL TERBIT", "PEMOHON", "JENIS PERIZINAN", "SUB JENIS", "SATKER / PPK", "RUAS JALAN", "PNBP (Rp)", "KONTAK (WA)", "STATUS"];
+            const header = ["NO", "NOMOR IZIN", "TANGGAL TERBIT", "PEMOHON", "JENIS", "SUB JENIS", "SATKER", "RUAS JALAN", "PNBP (Rp)", "STATUS"];
             const rows = filteredData.map((item, index) => [
                 index + 1,
                 item.nomor_izin,
@@ -983,101 +794,16 @@
                 item.satker ? item.satker.nama_satker : '-',
                 item.lokasi ? item.lokasi.map(l => l.nama_ruas_jalan).join(', ') : '-',
                 parseFloat(item.pnbp || 0),
-                item.no_hp || '-',
                 item.status.toUpperCase()
             ]);
 
-            const wsData = [header, ...rows];
-            const worksheet = XLSX.utils.aoa_to_sheet(wsData);
-
-            // Apply Styles to Cells
-            const range = XLSX.utils.decode_range(worksheet['!ref']);
-            
-            for (let R = range.s.r; R <= range.e.r; ++R) {
-                for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const address = XLSX.utils.encode_cell({ r: R, c: C });
-                    if (!worksheet[address]) continue;
-
-                    // Base Style
-                    worksheet[address].s = {
-                        font: { name: "Arial", sz: 10 },
-                        alignment: { vertical: "center", horizontal: "left", wrapText: true },
-                        border: {
-                            top: { style: "thin", color: { rgb: "E5E7EB" } },
-                            bottom: { style: "thin", color: { rgb: "E5E7EB" } },
-                            left: { style: "thin", color: { rgb: "E5E7EB" } },
-                            right: { style: "thin", color: { rgb: "E5E7EB" } }
-                        }
-                    };
-
-                    // Header Style (Row 0)
-                    if (R === 0) {
-                        worksheet[address].s = {
-                            fill: { fgColor: { rgb: "1E3A8A" } }, // Navy Blue
-                            font: { color: { rgb: "FFFFFF" }, bold: true, sz: 11 },
-                            alignment: { horizontal: "center", vertical: "center" },
-                            border: {
-                                top: { style: "thin", color: { rgb: "000000" } },
-                                bottom: { style: "thin", color: { rgb: "000000" } }
-                            }
-                        };
-                    } else {
-                        // Zebra Striping for Body
-                        if (R % 2 === 0) {
-                            worksheet[address].s.fill = { fgColor: { rgb: "F9FAFB" } };
-                        }
-                        
-                        // Center align for specific columns
-                        if (C === 0 || C === 2 || C === 10) {
-                            worksheet[address].s.alignment.horizontal = "center";
-                        }
-                        
-                        // PNBP Formatting (Column 8)
-                        if (C === 8) {
-                            worksheet[address].z = '#,##0';
-                            worksheet[address].s.alignment.horizontal = "right";
-                        }
-
-                        // Status Color highlight (Column 10)
-                        if (C === 10) {
-                            const status = worksheet[address].v;
-                            let color = "6B7280"; // Gray
-                            if (status === 'AKTIF') color = "059669"; // Green
-                            if (status === 'HAMPIR_HABIS') color = "D97706"; // Orange
-                            if (status === 'KADALUARSA') color = "DC2626"; // Red
-                            worksheet[address].s.font.color = { rgb: color };
-                            worksheet[address].s.font.bold = true;
-                        }
-                    }
-                }
-            }
-
-            // Set Column Widths
-            worksheet['!cols'] = [
-                { wch: 6 },  // No
-                { wch: 25 }, // Nomor Izin
-                { wch: 15 }, // Tanggal
-                { wch: 35 }, // Pemohon
-                { wch: 30 }, // Jenis
-                { wch: 20 }, // Sub Jenis
-                { wch: 30 }, // Satker
-                { wch: 45 }, // Ruas Jalan
-                { wch: 18 }, // PNBP
-                { wch: 18 }, // No HP
-                { wch: 15 }  // Status
-            ];
-
-            // Set Row Heights
-            worksheet['!rows'] = [{ hpt: 30 }]; // Header height
-
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Perizinan");
-            
-            XLSX.writeFile(workbook, `Rekap_Perizinan_${new Date().toISOString().split('T')[0]}.xlsx`);
+            const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan Perizinan");
+            XLSX.writeFile(wb, `Rekap_Perizinan_${new Date().toISOString().split('T')[0]}.xlsx`);
             exportModal.classList.add('hidden');
         });
 
-        // Confirm Export PDF
         document.getElementById('confirm-export-pdf').addEventListener('click', () => {
             const filterTahun = document.getElementById('export-tahun').value;
             const filterJenis = document.getElementById('export-jenis').value;
@@ -1103,7 +829,6 @@
             }
 
             try {
-                // Determine jsPDF constructor
                 let jsPDFConstructor = null;
                 if (window.jspdf && window.jspdf.jsPDF) {
                     jsPDFConstructor = window.jspdf.jsPDF;
@@ -1112,21 +837,19 @@
                 }
 
                 if (!jsPDFConstructor) {
-                    throw new Error('Library jsPDF tidak ditemukan. Pastikan koneksi internet stabil.');
+                    throw new Error('Library jsPDF tidak ditemukan.');
                 }
                 
-                const doc = new jsPDFConstructor('l', 'mm', 'a4'); // Landscape
+                const doc = new jsPDFConstructor('l', 'mm', 'a4');
 
-                // Add Title
                 doc.setFontSize(18);
-                doc.setTextColor(30, 58, 138); // Navy
+                doc.setTextColor(30, 58, 138);
                 doc.text("LAPORAN REKAPITULASI PERIZINAN JALAN", 148, 20, { align: 'center' });
                 
                 doc.setFontSize(10);
                 doc.setTextColor(100);
                 doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 148, 27, { align: 'center' });
 
-                // Prepare Table Data with safer access
                 const body = filteredData.map((item, index) => [
                     index + 1,
                     item.nomor_izin || '-',
@@ -1135,24 +858,18 @@
                     (item.jenis_izin || '').toUpperCase(),
                     item.sub_jenis || '-',
                     item.satker ? item.satker.nama_satker : '-',
-                    item.lokasi && Array.isArray(item.lokasi) ? item.lokasi.map(l => l.nama_ruas_jalan).join(', ') : '-',
+                    item.lokasi ? item.lokasi.map(l => l.nama_ruas_jalan).join(', ') : '-',
                     new Intl.NumberFormat('id-ID').format(parseFloat(item.pnbp || 0)),
                     (item.status || '').toUpperCase()
                 ]);
 
-                // Check for autoTable plugin
                 if (typeof doc.autoTable !== 'function') {
-                    // Try to use window.jspdf.jsPDF.API.autoTable if it's there
-                    if (jsPDFConstructor.API && typeof jsPDFConstructor.API.autoTable === 'function') {
-                        // Plugin attached to API but maybe not to instance? Unlikely but let's be safe
-                    } else {
-                        throw new Error('Plugin autoTable (tabel PDF) tidak ditemukan.');
-                    }
+                    throw new Error('Plugin autoTable tidak ditemukan.');
                 }
 
                 doc.autoTable({
                     startY: 35,
-                    head: [["NO", "NOMOR IZIN", "TGL TERBIT", "PEMOHON", "JENIS", "SUB JENIS", "SATKER", "RUAS JALAN", "PNBP (Rp)", "STATUS"]],
+                    head: [["NO", "NOMOR IZIN", "TGL TERBIT", "PEMOHON", "JENIS", "SUB JENIS", "SATKER", "RUAS JALAN", "PNBP", "STATUS"]],
                     body: body,
                     theme: 'striped',
                     headStyles: { fillColor: [30, 58, 138], textColor: 255, halign: 'center' },
@@ -1170,14 +887,12 @@
                 doc.save(`Rekap_Perizinan_${new Date().toISOString().split('T')[0]}.pdf`);
                 exportModal.classList.add('hidden');
             } catch (err) {
-                console.error('Export PDF Error:', err);
-                alert('Terjadi kesalahan saat mengekspor PDF: ' + err.message);
+                console.error(err);
+                alert('Gagal mengekspor PDF: ' + err.message);
             }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            const tbody = document.getElementById('tabel-perizinan');
-            tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-4 text-center text-gray-500">Memuat data dari database...</td></tr>`;
             fetchPerizinan();
             fetchRuasJalan();
         });

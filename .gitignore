@@ -19,5 +19,8 @@ dist/
 Thumbs.db
 *.local
 
+# Secrets and sensitive info
+doc/GoogleConsoleInfo.txt
+
 # Git conflict files
 *.orig

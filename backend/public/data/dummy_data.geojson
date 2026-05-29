@@ -1,0 +1,100 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1,
+        "type": "ruas_jalan",
+        "nama_ruas": "Mataram - Senggigi",
+        "sta_awal": "Km 10+000",
+        "sta_akhir": "Km 25+000"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [116.0827, -8.5833],
+          [116.0650, -8.5400],
+          [116.0500, -8.4900]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2,
+        "type": "izin",
+        "no_izin": "012/BPJN-NTB/IZIN/2025",
+        "pemohon": "PT Telkom Indonesia",
+        "jenis_izin": "Izin Kabel Fiber Optik",
+        "ruas_jalan": "Mataram - Senggigi",
+        "status": "aktif",
+        "masa_berlaku_awal": "2025-01-01",
+        "masa_berlaku_akhir": "2026-01-01",
+        "pnbp": 15000000
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [116.0827, -8.5833]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3,
+        "type": "izin",
+        "no_izin": "045/BPJN-NTB/IZIN/2024",
+        "pemohon": "PDAM Giri Menang",
+        "jenis_izin": "Izin Pipa Air Bersih",
+        "ruas_jalan": "Mataram - Senggigi",
+        "status": "hampir_habis",
+        "masa_berlaku_awal": "2024-05-10",
+        "masa_berlaku_akhir": "2025-05-10",
+        "pnbp": 8500000
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [116.0650, -8.5400]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 4,
+        "type": "izin",
+        "no_izin": "088/BPJN-NTB/IZIN/2023",
+        "pemohon": "CV. Media Promosi",
+        "jenis_izin": "Izin Reklame Bando",
+        "ruas_jalan": "Mataram - Senggigi",
+        "status": "kadaluarsa",
+        "masa_berlaku_awal": "2023-02-15",
+        "masa_berlaku_akhir": "2024-02-15",
+        "pnbp": 25000000
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [116.0500, -8.4900]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 5,
+        "type": "rumija",
+        "nama": "RUMIJA Mataram - Senggigi Segmen 1"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [116.0820, -8.5830],
+            [116.0834, -8.5830],
+            [116.0834, -8.5840],
+            [116.0820, -8.5840],
+            [116.0820, -8.5830]
+          ]
+        ]
+      }
+    }
+  ]
+}

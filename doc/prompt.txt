@@ -1,0 +1,7 @@
+Revisi :
+1. Pada halaman Peta Pemanfaatan (http://localhost/InventarisasiPerizinan/backend/public/peta), tombol street view pada popup icon pemanfaatan tidak berfungsi. seperti versi sebelumnya.
+2. Tombol detail pada popup icon pemanfaatan (peta) tidak dapat membuka dan menutupu halaman detail pemanfaatan.
+3. Tombol chat di halaman daftar perizinan (http://localhost/InventarisasiPerizinan/backend/public/perizinan-data), belum sama seperti versi sebelumnya (sebelum di convert)
+4. pada halaman formulir Perizinan (http://localhost/InventarisasiPerizinan/backend/public/admin), tambahkan icon untuk rambu lalu lintas dan pemanfaatan lahan
+5. Halaman manajemen Pengguna (http://localhost/InventarisasiPerizinan/backend/public/manajemen-user), tidak berfungsi
+6. periksa kembali halaman daftar perizinan masuk (http://localhost/InventarisasiPerizinan/backend/public/perizinan-data), pada saat tombol ruas jalan/lokasi harus beralih ke halaman peta pemanfaatan langsung menuju ke lokasi pemanfaatan

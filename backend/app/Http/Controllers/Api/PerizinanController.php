@@ -25,6 +25,7 @@ class PerizinanController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Store Request Received', ['all' => $request->all(), 'has_files' => $request->hasFile('dokumen')]);
         $validated = $request->validate([
             'nomor_izin'     => 'required|unique:perizinan,nomor_izin',
             'pemohon'        => 'required|string',
@@ -60,14 +61,26 @@ class PerizinanController extends Controller
 
             // Handle Multiple Files Upload (Dokumen Pendukung)
             if ($request->hasFile('dokumen')) {
+                // Buat nama subfolder: "NomorIzin - NamaPemohon"
+                $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $validated['nomor_izin'] . ' - ' . $validated['pemohon']);
+                
                 foreach ($request->file('dokumen') as $file) {
                     $filename = time() . '_' . $file->getClientOriginalName();
-                    $file->storeAs('public/dokumen', $filename);
+                    $filePath = $folderName . '/' . $filename;
+                    
+                    // Simpan ke Google Drive dalam subfolder per perizinan
+                    $file->storeAs($folderName, $filename, 'google');
+                    
+                    $url = $filePath;
+                    try {
+                        $url = \Illuminate\Support\Facades\Storage::disk('google')->url($filePath);
+                    } catch (\Exception $e) {}
                     
                     DB::table('dokumen')->insert([
                         'perizinan_id' => $perizinan->id,
                         'nama_file'    => $file->getClientOriginalName(),
-                        'file_path'    => $filename,
+                        'file_path'    => $url,
+                        'file_id'      => $filePath, // Simpan path asli untuk penghapusan
                         'tipe_dokumen' => 'lainnya',
                         'ukuran_file'  => round($file->getSize() / 1024), // KB
                         'created_at'   => now(),
@@ -109,6 +122,11 @@ class PerizinanController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Upload Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
@@ -188,16 +206,49 @@ class PerizinanController extends Controller
                 );
             }
 
+            // Handle Penelusuran Dokumen yang Dihapus
+            if ($request->has('deleted_dokumen')) {
+                $deletedIds = $request->input('deleted_dokumen');
+                foreach ($deletedIds as $docId) {
+                    $doc = DB::table('dokumen')->where('id', $docId)->where('perizinan_id', $id)->first();
+                    if ($doc) {
+                        // Hapus dari Google Drive
+                        try {
+                            $pathToDelete = $doc->file_id ?? $doc->file_path;
+                            if ($pathToDelete) {
+                                \Illuminate\Support\Facades\Storage::disk('google')->delete($pathToDelete);
+                            }
+                        } catch (\Exception $e) {
+                            \Log::warning("Gagal menghapus file dari Google Drive: " . ($doc->file_id ?? $doc->file_path));
+                        }
+                        // Hapus dari Database
+                        DB::table('dokumen')->where('id', $docId)->delete();
+                    }
+                }
+            }
+
             // Handle New Dokumen
             if ($request->hasFile('dokumen')) {
+                // Buat nama subfolder: "NomorIzin - NamaPemohon"
+                $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $validated['nomor_izin'] . ' - ' . $validated['pemohon']);
+                
                 foreach ($request->file('dokumen') as $file) {
                     $filename = time() . '_' . $file->getClientOriginalName();
-                    $file->storeAs('public/dokumen', $filename);
+                    $filePath = $folderName . '/' . $filename;
+                    
+                    // Simpan ke Google Drive dalam subfolder per perizinan
+                    $file->storeAs($folderName, $filename, 'google');
+                    
+                    $url = $filePath;
+                    try {
+                        $url = \Illuminate\Support\Facades\Storage::disk('google')->url($filePath);
+                    } catch (\Exception $e) {}
                     
                     DB::table('dokumen')->insert([
                         'perizinan_id' => $perizinan->id,
                         'nama_file'    => $file->getClientOriginalName(),
-                        'file_path'    => $filename,
+                        'file_path'    => $url,
+                        'file_id'      => $filePath,
                         'tipe_dokumen' => 'lainnya',
                         'ukuran_file'  => round($file->getSize() / 1024),
                         'created_at'   => now(),

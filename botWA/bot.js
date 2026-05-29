@@ -21,6 +21,13 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
+// Deteksi otomatis lokasi Google Chrome di Windows Anda
+const chromePaths = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+];
+const execPath = chromePaths.find(p => fs.existsSync(p));
+
 // Initialize WhatsApp Client
 const client = new Client({
     authStrategy: new LocalAuth({
@@ -31,6 +38,7 @@ const client = new Client({
         remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
     },
     puppeteer: {
+        executablePath: execPath, // Gunakan Chrome yang sudah ada di PC
         headless: true,
         args: [
             '--no-sandbox',
@@ -49,13 +57,13 @@ client.on('qr', (qr) => {
     console.log('\n\n==================================================');
     console.log('SCAN QR CODE DI BAWAH INI DENGAN WHATSAPP ANDA:');
     console.log('==================================================\n');
-    
+
     // Tampilkan QR di terminal (gunakan small: false jika scanner sulit membaca)
     qrcode.generate(qr, { small: false });
 
     // Simpan QR ke folder sebagai gambar
     const imgDir = path.join(__dirname, 'img_bot');
-    if (!fs.existsSync(imgDir)){
+    if (!fs.existsSync(imgDir)) {
         fs.mkdirSync(imgDir);
     }
     const imgPath = path.join(imgDir, 'qr.png');
@@ -68,7 +76,7 @@ client.on('qr', (qr) => {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qr)}&size=300x300`;
     console.log('\nJika QR di atas tidak muncul atau sulit di-scan, buka link ini:');
     console.log(qrUrl);
-    
+
     console.log('\nTips: Jika scan terus gagal, coba hapus folder "sessions" lalu jalankan ulang.');
     console.log('==================================================\n\n');
 });

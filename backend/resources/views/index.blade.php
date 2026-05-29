@@ -39,15 +39,8 @@
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .stat-card {
@@ -57,21 +50,10 @@
             animation: fadeInUp 0.6s ease-out forwards;
         }
 
-        .stat-card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .stat-card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .stat-card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .stat-card:nth-child(4) {
-            animation-delay: 0.4s;
-        }
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
 
         .stat-card:hover {
             transform: translateY(-5px) !important;
@@ -83,17 +65,9 @@
             animation: fadeInUp 0.8s ease-out forwards;
         }
 
-        .delay-1 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.4s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.6s;
-        }
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
 
         .nav-sticky {
             position: sticky;
@@ -119,13 +93,11 @@
 
 <body class="bg-white text-gray-900 antialiased">
 
-
-
     <!-- NAVIGATION -->
     <nav class="nav-sticky bg-white py-4 px-6 border-b border-gray-100">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <img src="img/logo.png" alt="Logo Siperjalan" class="h-12 w-auto">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Siperjalan" class="h-12 w-auto">
                 <div class="flex flex-col leading-tight border-l pl-4 border-gray-200">
                     <span class="font-bold text-xl text-bps-navy tracking-tight uppercase">Siperjalan</span>
                     <span class="text-[10px] text-bps-gray font-semibold tracking-widest uppercase">Sistem Informasi
@@ -134,11 +106,10 @@
             </div>
 
             <div class="hidden lg:flex items-center space-x-8 text-sm font-semibold text-bps-navy">
-                <a href="index.html" class="text-bps-blue">Beranda</a>
-                <a href="peta.html" class="hover:text-bps-blue transition-colors">Peta Pemanfaatan</a>
-                <a href="perizinan.html" id="nav-perizinan-link"
-                    class="hidden hover:text-bps-blue transition-colors">Data Perizinan</a>
-                <a href="login.html" id="nav-login-btn"
+                <a href="{{ route('home') }}" class="text-bps-blue">Beranda</a>
+                <a href="{{ route('peta') }}" class="hover:text-bps-blue transition-colors">Peta Pemanfaatan</a>
+                <a href="{{ route('perizinan_view') }}" id="nav-perizinan-link" class="hidden hover:text-bps-blue transition-colors">Data Perizinan</a>
+                <a href="{{ route('login') }}" id="nav-login-btn"
                     class="bg-bps-blue text-white px-6 py-2.5 rounded-md hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm">
                     <i class="ph ph-user-circle text-lg"></i>
                     <span>Akses Admin</span>
@@ -149,7 +120,7 @@
 
     <!-- HERO SECTION -->
     <section class="relative min-h-[calc(100vh-80px)] flex flex-col justify-center items-center overflow-hidden">
-        <img src="img/back_login.png" alt="Background" class="absolute inset-0 w-full h-full object-cover">
+        <img src="{{ asset('img/back_login.png') }}" alt="Background" class="absolute inset-0 w-full h-full object-cover">
         <div class="absolute inset-0 hero-overlay"></div>
 
         <div class="max-w-7xl mx-auto px-6 w-full relative z-10 text-center">
@@ -170,16 +141,15 @@
                         <input type="text" id="hero-search-input" placeholder="Cari data perizinan atau pemohon..."
                             class="w-full py-3 focus:outline-none text-gray-700 font-medium">
                     </div>
-                    <button
+                    <button id="hero-search-btn"
                         class="bg-bps-blue text-white px-8 py-3 rounded-md font-bold hover:bg-blue-700 transition-all w-full md:w-auto">
                         Cari Data
                     </button>
                 </div>
             </div>
         </div>
-        </div>
 
-        <!-- KEY INDICATORS (BPS Style Floating Cards) - Moved inside Hero -->
+        <!-- KEY INDICATORS -->
         <div class="max-w-7xl mx-auto px-6 w-full relative z-10 mt-12 mb-12">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Stat Card 1 -->
@@ -235,17 +205,13 @@
         </div>
     </section>
 
-
-
-
-
-
-
     <script>
         // Check Login Status
         document.addEventListener('DOMContentLoaded', () => {
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             const perizinanLink = document.getElementById('nav-perizinan-link');
+            const navBtn = document.getElementById('nav-login-btn');
+            
             if (isLoggedIn) {
                 navBtn.innerHTML = '<i class="ph ph-sign-out text-lg"></i><span>Keluar Admin</span>';
                 navBtn.className = 'bg-red-600 text-white px-6 py-2.5 rounded-md hover:bg-red-700 transition-all flex items-center gap-2 shadow-sm';
@@ -261,7 +227,8 @@
             }
 
             // Optional: Fetch Dynamic Stats for Cards
-            fetch('/api/perizinan')
+            const API_URL = "{{ url('/api/perizinan') }}";
+            fetch(API_URL)
                 .then(r => r.json())
                 .then(res => {
                     if (res.success) {
@@ -269,9 +236,22 @@
                         document.getElementById('kpi-total').textContent = data.length.toLocaleString('id-ID') + '+';
                         document.getElementById('kpi-aktif').textContent = data.filter(i => i.status === 'aktif').length.toLocaleString('id-ID');
                         const pnbp = data.reduce((sum, i) => sum + (parseFloat(i.pnbp) || 0), 0);
-                        document.getElementById('kpi-pnbp').textContent = 'Rp ' + (pnbp / 1000000).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' Juta';
+                        document.getElementById('kpi-pnbp').textContent = 'Rp ' + (pnbp / 1000000).toLocaleString('id-ID', {maximumFractionDigits: 1}) + ' Juta';
                     }
                 });
+
+            // Hero Search Button logic
+            const searchBtn = document.getElementById('hero-search-btn');
+            if (searchBtn) {
+                searchBtn.addEventListener('click', () => {
+                    const query = document.getElementById('hero-search-input').value;
+                    if (query) {
+                        window.location.href = "{{ route('peta') }}?q=" + encodeURIComponent(query);
+                    } else {
+                        window.location.href = "{{ route('peta') }}";
+                    }
+                });
+            }
 
             // Typing Effect for Search Placeholder
             const heroSearch = document.getElementById('hero-search-input');
@@ -289,7 +269,7 @@
 
             function playTyping() {
                 const currentText = suggestions[suggestionIdx];
-
+                
                 if (isDeleting) {
                     heroSearch.placeholder = currentText.substring(0, charIdx--);
                     typingSpeed = 50;
@@ -308,22 +288,12 @@
                     typingSpeed = 500;
                 }
 
-                // Berhenti animasi jika sedang fokus atau ada isinya
                 if (document.activeElement !== heroSearch && heroSearch.value === "") {
                     setTimeout(playTyping, typingSpeed);
                 } else {
-                    // Cek lagi nanti untuk resume
                     setTimeout(() => {
                         if (document.activeElement !== heroSearch && heroSearch.value === "") {
                             playTyping();
-                        } else {
-                            // Tunggu sampai interaksi selesai
-                            const waiter = setInterval(() => {
-                                if (document.activeElement !== heroSearch && heroSearch.value === "") {
-                                    clearInterval(waiter);
-                                    playTyping();
-                                }
-                            }, 3000);
                         }
                     }, 5000);
                 }

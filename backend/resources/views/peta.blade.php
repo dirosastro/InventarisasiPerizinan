@@ -36,13 +36,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <style>
         /* Street View Drag & Ripple Animation */
         #pegman-icon.dragging {
             opacity: 0.8;
             color: #facc15 !important;
-            /* Yellow-400 */
             filter: drop-shadow(0 15px 20px rgba(0, 0, 0, 0.6));
             transition: all 0.2s ease;
             cursor: grabbing;
@@ -50,81 +49,8 @@
         }
 
         @keyframes pegman-float {
-
-            0%,
-            100% {
-                transform: scale(2) translateY(-15px);
-            }
-
-            50% {
-                transform: scale(2) translateY(-25px);
-            }
-        }
-
-        /* Pulsing Target Pointer */
-        .drag-target-pointer {
-            position: fixed;
-            width: 30px;
-            height: 30px;
-            background: rgba(250, 204, 21, 0.2);
-            border: 2px solid #facc15;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 10000;
-            transform: translate(-50%, -50%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: target-pulse 1s infinite;
-        }
-
-        .drag-target-pointer::after {
-            content: '';
-            width: 6px;
-            height: 6px;
-            background: #facc15;
-            border-radius: 50%;
-        }
-
-        @keyframes target-pulse {
-            0% {
-                transform: translate(-50%, -50%) scale(1);
-                box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7);
-            }
-
-            70% {
-                transform: translate(-50%, -50%) scale(1.1);
-                box-shadow: 0 0 0 20px rgba(250, 204, 21, 0);
-            }
-
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-                box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
-            }
-        }
-
-        .drop-ripple {
-            position: fixed;
-            width: 20px;
-            height: 20px;
-            background: rgba(250, 204, 21, 0.5);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%) scale(1);
-            animation: ripple-out 0.8s cubic-bezier(0, 0, 0.2, 1) forwards;
-        }
-
-        @keyframes ripple-out {
-            0% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 1;
-            }
-
-            100% {
-                transform: translate(-50%, -50%) scale(8);
-                opacity: 0;
-            }
+            0%, 100% { transform: scale(2) translateY(-15px); }
+            50% { transform: scale(2) translateY(-25px); }
         }
 
         /* Sidebar Collapsed State */
@@ -139,6 +65,56 @@
         #left-sidebar.sidebar-collapsed #toggle-sidebar {
             right: -32px;
         }
+        /* pegman pointer and ripple */
+        .drag-target-pointer {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            background: rgba(250, 204, 21, 0.4);
+            border: 2px solid #facc15;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .drag-target-pointer::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #facc15;
+            border-radius: 50%;
+        }
+        .drop-ripple {
+            position: fixed;
+            border: 4px solid #facc15;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            animation: ripple-out 1s ease-out forwards;
+        }
+        @keyframes ripple-out {
+            from { width: 0; height: 0; opacity: 1; border-width: 4px; }
+            to { width: 200px; height: 200px; opacity: 0; border-width: 1px; }
+        }
+
+        .focus-pulse {
+            animation: focus-pulse-anim 1s ease-out infinite;
+            z-index: 9999 !important;
+        }
+
+        @keyframes focus-pulse-anim {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(49, 130, 206, 0.7); }
+            70% { transform: scale(1.2); box-shadow: 0 0 0 15px rgba(49, 130, 206, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(49, 130, 206, 0); }
+        }
+
+        .custom-div-icon {
+            z-index: 1000 !important;
+        }
     </style>
 </head>
 
@@ -149,19 +125,19 @@
         class="bg-primary text-white h-[60px] flex items-center justify-between px-4 lg:px-6 shadow-md z-50 shrink-0">
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-2 font-bold text-lg tracking-wide">
-                <img src="img/logo.png" alt="Logo" class="h-8 w-auto">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-8 w-auto">
                 <span>Siperjalan</span>
             </div>
             <!-- Navigation Links -->
             <nav class="hidden md:flex items-center gap-1 text-sm font-medium" id="nav-links">
-                <a href="index.html" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Beranda</a>
-                <a href="dashboard.html" id="nav-dashboard"
+                <a href="{{ route('home') }}" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Beranda</a>
+                <a href="{{ route('dashboard') }}" id="nav-dashboard"
                     class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Dashboard Admin</a>
-                <a href="peta.html" class="px-3 py-2 rounded-md bg-secondary text-white transition-colors">Peta
+                <a href="{{ route('peta') }}" class="px-3 py-2 rounded-md bg-secondary text-white transition-colors">Peta
                     Pemanfaatan</a>
-                <a href="perizinan.html" id="nav-perizinan"
+                <a href="{{ route('perizinan_view') }}" id="nav-perizinan"
                     class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Data Perizinan</a>
-                <a href="manajemen_user.html" id="admin-nav"
+                <a href="{{ route('users') }}" id="admin-nav"
                     class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Manajemen User</a>
             </nav>
         </div>
@@ -189,7 +165,6 @@
                     const authSection = document.getElementById('auth-section');
                     const adminNav = document.getElementById('admin-nav');
 
-                    // Self-healing: Jika sudah login tapi role kosong, set sebagai superadmin (untuk sesi lama)
                     if (isLoggedIn && !userRole) {
                         localStorage.setItem('userRole', 'superadmin');
                         window.location.reload();
@@ -201,7 +176,6 @@
                             document.getElementById('nav-perizinan').classList.remove('hidden');
                         }
 
-                        // Tampilkan Manajemen User jika superadmin
                         if (localStorage.getItem('userRole') === 'superadmin' && adminNav) {
                             adminNav.classList.remove('hidden');
                         }
@@ -216,8 +190,8 @@
                             document.getElementById('nav-perizinan').classList.add('hidden');
                         }
                         authSection.innerHTML = `
-                            <a href="login.html" class="flex items-center gap-2 px-4 py-2 bg-accent text-white hover:bg-blue-600 rounded-lg transition-colors text-sm font-medium">
-                                <i class="fas fa-sign-in-alt"></i> Login
+                            <a href="{{ route('login') }}" class="flex items-center gap-2 px-4 py-2 bg-accent text-white hover:bg-blue-600 rounded-lg transition-colors text-sm font-medium">
+                                <i class="ph ph-sign-in"></i> Login
                             </a>
                         `;
                     }
@@ -226,7 +200,7 @@
                 function logout() {
                     localStorage.removeItem('isLoggedIn');
                     localStorage.removeItem('userRole');
-                    window.location.href = 'index.html';
+                    window.location.href = "{{ route('home') }}";
                 }
             </script>
         </div>
@@ -235,11 +209,10 @@
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex overflow-hidden relative">
 
-        <!-- LEFT SIDEBAR (FILTER & LAYER) -->
+        <!-- LEFT SIDEBAR -->
         <aside id="left-sidebar"
             class="w-[280px] bg-white shadow-[4px_0_10px_rgba(0,0,0,0.05)] z-40 flex flex-col h-full shrink-0 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300 relative">
 
-            <!-- Toggle Sidebar Button -->
             <button id="toggle-sidebar"
                 class="absolute -right-8 top-1/2 -translate-y-1/2 bg-white border border-l-0 border-gray-200 w-8 h-16 rounded-r-xl shadow-[4px_2px_10px_rgba(0,0,0,0.05)] z-50 flex items-center justify-center hover:bg-gray-50 group transition-all duration-300">
                 <i class="ph ph-caret-left text-gray-400 group-hover:text-primary transition-transform duration-300"
@@ -361,9 +334,7 @@
         <section class="flex-1 relative z-0">
             <div id="map" class="w-full h-full bg-gray-200"></div>
 
-            <!-- Google-style Street View Bar -->
             <div class="fixed bottom-6 right-6 z-[1000] flex flex-col items-end gap-3 pointer-events-none">
-                <!-- Tooltip -->
                 <div id="sv-tooltip"
                     class="bg-black/90 text-white text-[10px] px-3 py-1.5 rounded shadow-lg mb-1 opacity-0 transition-opacity duration-200">
                     Browse Street View images
@@ -371,7 +342,6 @@
 
                 <div
                     class="bg-[#2c2c2c] rounded-lg shadow-xl border border-white/10 p-1 flex items-center gap-1 pointer-events-auto h-12">
-                    <!-- Pegman Button -->
                     <button id="pegman-btn"
                         class="w-10 h-10 flex items-center justify-center rounded hover:bg-white/10 transition-colors group relative">
                         <i class="ph-fill ph-person-simple-walk text-2xl text-white cursor-grab active:cursor-grabbing"
@@ -380,39 +350,31 @@
 
                     <div class="w-[1px] h-8 bg-white/20 mx-1"></div>
 
-                    <!-- Map Type Switcher -->
                     <div class="flex items-center gap-1.5 px-2">
-                        <!-- Satellite -->
                         <button onclick="switchMapType('satellite')" data-type="satellite"
                             class="map-type-btn w-8 h-8 rounded flex items-center justify-center border border-accent scale-110 transition-all hover:scale-110 active:scale-95 group relative bg-gray-700 text-white"
                             title="Satelit">
                             <i class="ph ph-planet text-xs"></i>
                         </button>
-                        <!-- Streets -->
                         <button onclick="switchMapType('streets')" data-type="streets"
                             class="map-type-btn w-8 h-8 rounded flex items-center justify-center border border-white/20 transition-all hover:scale-110 active:scale-95 group relative bg-gray-700 text-white"
                             title="Jalan">
                             <i class="ph ph-road-horizon text-xs"></i>
                         </button>
-                        <!-- Hybrid -->
                         <button onclick="switchMapType('hybrid')" data-type="hybrid"
                             class="map-type-btn w-8 h-8 rounded flex items-center justify-center border border-white/20 transition-all hover:scale-110 active:scale-95 group relative bg-gray-700 text-white"
                             title="Hibrida">
                             <i class="ph ph-map-trifold text-xs"></i>
                         </button>
-                        <!-- Terrain -->
                         <button onclick="switchMapType('terrain')" data-type="terrain"
                             class="map-type-btn w-8 h-8 rounded flex items-center justify-center border border-white/20 transition-all hover:scale-110 active:scale-95 group relative bg-gray-700 text-white"
                             title="Medan">
                             <i class="ph ph-mountains text-xs"></i>
                         </button>
                     </div>
-
-
                 </div>
             </div>
 
-            <!-- Map Legend -->
             <div
                 class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-white/50 z-[1000] text-xs">
                 <h4 class="font-bold mb-2 text-gray-700">Legenda Peta</h4>
@@ -435,7 +397,6 @@
         <aside id="detail-panel"
             class="w-[350px] bg-white shadow-[-4px_0_10px_rgba(0,0,0,0.05)] z-40 flex flex-col h-full shrink-0 transform transition-transform duration-300 translate-x-full absolute right-0 top-0 bottom-0 border-l border-gray-100">
 
-            <!-- Panel Header -->
             <div class="p-4 border-b border-gray-100 flex items-start justify-between bg-gray-50">
                 <div>
                     <span id="detail-status"
@@ -449,7 +410,6 @@
                 </button>
             </div>
 
-            <!-- Tabs -->
             <div class="flex border-b border-gray-200">
                 <button class="tab-btn flex-1 py-3 text-xs font-semibold text-primary border-b-2 border-primary"
                     data-target="tab-umum">Umum</button>
@@ -464,10 +424,7 @@
                     data-target="tab-riwayat">Riwayat</button>
             </div>
 
-            <!-- Tab Contents -->
             <div class="flex-1 overflow-y-auto custom-scrollbar p-5">
-
-                <!-- Tab: Info Umum -->
                 <div id="tab-umum" class="tab-content block space-y-4">
                     <div>
                         <label class="text-[10px] font-bold text-gray-400 uppercase">Nomor Izin</label>
@@ -497,7 +454,6 @@
                     </div>
                 </div>
 
-                <!-- Tab: Data Teknis -->
                 <div id="tab-teknis" class="tab-content hidden space-y-4">
                     <div>
                         <label class="text-[10px] font-bold text-gray-400 uppercase">Ruas Jalan</label>
@@ -514,8 +470,7 @@
                         </div>
                     </div>
                     <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Dimensi
-                            Pemanfaatan</label>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Dimensi Pemanfaatan</label>
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-xs text-gray-600">Panjang</span>
                             <span id="teknis-panjang" class="text-xs font-semibold">-</span>
@@ -526,71 +481,12 @@
                         </div>
                         <div class="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
                             <span class="text-xs font-bold text-gray-700">Total Area</span>
-                            <span class="text-xs font-bold text-primary">1,000 M²</span>
+                            <span class="text-xs font-bold text-primary">Dihitung otomatis</span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Tab: Dokumen -->
-                <div id="tab-dokumen" class="tab-content hidden space-y-3">
-                    <div
-                        class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-accent hover:bg-blue-50 transition-colors group cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <i class="ph-fill ph-file-pdf text-red-500 text-2xl"></i>
-                            <div>
-                                <h4 class="text-xs font-semibold text-gray-800 group-hover:text-primary">Surat
-                                    Permohonan.pdf</h4>
-                                <p class="text-[10px] text-gray-500">2.4 MB • 12 Jan 2025</p>
-                            </div>
-                        </div>
-                        <button class="text-gray-400 hover:text-accent"><i
-                                class="ph ph-download-simple text-lg"></i></button>
-                    </div>
-                    <div
-                        class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-accent hover:bg-blue-50 transition-colors group cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <i class="ph-fill ph-file-pdf text-red-500 text-2xl"></i>
-                            <div>
-                                <h4 class="text-xs font-semibold text-gray-800 group-hover:text-primary">Gambar
-                                    Teknis.pdf</h4>
-                                <p class="text-[10px] text-gray-500">5.1 MB • 12 Jan 2025</p>
-                            </div>
-                        </div>
-                        <button class="text-gray-400 hover:text-accent"><i
-                                class="ph ph-download-simple text-lg"></i></button>
-                    </div>
-                </div>
-
-                <!-- Tab: Riwayat -->
-                <div id="tab-riwayat" class="tab-content hidden">
-                    <div class="relative border-l-2 border-gray-200 ml-3 pl-5 pb-5">
-                        <div
-                            class="absolute w-3 h-3 bg-status-active rounded-full -left-[7px] top-1 border-2 border-white">
-                        </div>
-                        <p class="text-xs font-bold text-gray-800">Izin Diterbitkan</p>
-                        <p class="text-[10px] text-gray-500 mt-0.5">01 Feb 2025 - 10:30 WITA</p>
-                        <p class="text-xs text-gray-600 mt-1">Izin telah disetujui dan diterbitkan oleh Kepala Balai.
-                        </p>
-                    </div>
-                    <div class="relative border-l-2 border-gray-200 ml-3 pl-5 pb-5">
-                        <div class="absolute w-3 h-3 bg-gray-300 rounded-full -left-[7px] top-1 border-2 border-white">
-                        </div>
-                        <p class="text-xs font-bold text-gray-800">Survei Lapangan Selesai</p>
-                        <p class="text-[10px] text-gray-500 mt-0.5">20 Jan 2025 - 14:00 WITA</p>
-                    </div>
-                    <div class="relative ml-3 pl-5">
-                        <div class="absolute w-3 h-3 bg-gray-300 rounded-full -left-[7px] top-1 border-2 border-white">
-                        </div>
-                        <p class="text-xs font-bold text-gray-800">Permohonan Masuk</p>
-                        <p class="text-[10px] text-gray-500 mt-0.5">12 Jan 2025 - 09:15 WITA</p>
-                    </div>
-                </div>
-
             </div>
-
-
         </aside>
-
     </main>
 
     <!-- Leaflet JS -->
@@ -605,7 +501,10 @@
     <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
     <!-- Custom Logic -->
-    <script type="module" src="app.js"></script>
+    <script>
+        window.API_BASE_URL = "{{ url('/') }}";
+    </script>
+    <script type="module" src="{{ asset('js/app.js') }}"></script>
     <script>
         // Sidebar Toggle Logic
         const leftSidebar = document.getElementById('left-sidebar');
@@ -614,7 +513,6 @@
         if (toggleSidebarBtn && leftSidebar) {
             toggleSidebarBtn.addEventListener('click', () => {
                 leftSidebar.classList.toggle('sidebar-collapsed');
-                // Invalidate map size after transition
                 setTimeout(() => {
                     if (typeof map !== 'undefined') map.invalidateSize();
                 }, 300);
