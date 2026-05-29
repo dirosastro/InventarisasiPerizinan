@@ -1,5 +1,5 @@
 // Dashboard API URLs
-const API_PERIZINAN = 'http://127.0.0.1:8000/api/perizinan';
+const API_PERIZINAN = '/api/perizinan';
 
 // Global Chart Instances to allow updates
 let pnbpChartInstance = null;

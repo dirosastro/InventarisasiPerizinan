@@ -259,7 +259,7 @@ const parseCoordinates = (str) => {
 // Function to fetch and process Perizinan
 async function fetchPerizinan() {
     try {
-        const response = await fetch('http://localhost:8000/api/perizinan');
+        const response = await fetch('/api/perizinan');
         const result = await response.json();
         if (!result.success) return;
         allPerizinanData = result.data;

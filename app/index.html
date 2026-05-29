@@ -234,7 +234,7 @@
             }
 
             // Optional: Fetch Dynamic Stats for Cards
-            fetch('http://127.0.0.1:8000/api/perizinan')
+            fetch('/api/perizinan')
                 .then(r => r.json())
                 .then(res => {
                     if (res.success) {

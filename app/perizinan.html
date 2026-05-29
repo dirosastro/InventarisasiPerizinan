@@ -366,7 +366,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://127.0.0.1:8000/api/perizinan';
+        const API_URL = '/api/perizinan';
         let allPerizinanData = [];
         let filteredPerizinanData = [];
         let allRuasNames = [];
@@ -377,7 +377,7 @@
         
         async function fetchRuasJalan() {
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/ruas-jalan');
+                const response = await fetch('/api/ruas-jalan');
                 const result = await response.json();
                 if (result.success) {
                     allRuasNames = [...new Set(result.data.map(r => r.nama_ruas))].sort();
@@ -677,7 +677,7 @@
         // ====================================================
         // KIRIM NOTIFIKASI VIA BOT WHATSAPP
         // ====================================================
-        const WA_BOT_URL = 'http://127.0.0.1:8000/api/wa-test';
+        const WA_BOT_URL = '/api/wa-test';
 
         // Toast Notification
         function showToast(message, type = 'success') {
