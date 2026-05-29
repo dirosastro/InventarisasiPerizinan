@@ -1,3 +1,6 @@
-2026/05/08-09:18:34.662 1c5c Reusing MANIFEST C:\xampp\htdocs\InventarisasiPerizinan\botWA\sessions\session\Default\Local Storage\leveldb/MANIFEST-000001
-2026/05/08-09:18:34.681 1c5c Recovering log #7
-2026/05/08-09:18:34.684 1c5c Reusing old log C:\xampp\htdocs\InventarisasiPerizinan\botWA\sessions\session\Default\Local Storage\leveldb/000007.log 
+2026/05/29-20:07:53.866 10f05f Reusing MANIFEST /Applications/XAMPP/xamppfiles/htdocs/InventarisasiPerizinan/botWA/sessions/session/Default/Local Storage/leveldb/MANIFEST-000001
+2026/05/29-20:07:53.876 10f05f Recovering log #7
+2026/05/29-20:07:53.877 10f05f Reusing old log /Applications/XAMPP/xamppfiles/htdocs/InventarisasiPerizinan/botWA/sessions/session/Default/Local Storage/leveldb/000007.log 
+2026/05/29-20:08:53.881 10f065 Level-0 table #11: started
+2026/05/29-20:08:53.884 10f065 Level-0 table #11: 17277 bytes OK
+2026/05/29-20:08:53.887 10f065 Delete type=0 #7
