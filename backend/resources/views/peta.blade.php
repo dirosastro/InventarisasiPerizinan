@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <title>Siperjalan - BPJN NTB</title>
 
     <!-- Tailwind CSS -->
@@ -484,6 +485,16 @@
                             <span class="text-xs font-bold text-primary">Dihitung otomatis</span>
                         </div>
                     </div>
+                </div>
+
+                <div id="tab-dokumen" class="tab-content hidden space-y-3">
+                    <!-- Dinamis oleh JS -->
+                    <p class="text-xs text-gray-400 italic text-center py-4">Pilih objek untuk melihat dokumen</p>
+                </div>
+
+                <div id="tab-riwayat" class="tab-content hidden space-y-4">
+                    <!-- Dinamis oleh JS -->
+                    <p class="text-xs text-gray-400 italic text-center py-4">Pilih objek untuk melihat riwayat</p>
                 </div>
             </div>
         </aside>

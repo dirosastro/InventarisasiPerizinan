@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\UserController;
 Route::get('/perizinan', [PerizinanController::class, 'index']);
 Route::get('/perizinan/{id}', [PerizinanController::class, 'show']);
 Route::post('/perizinan', [PerizinanController::class, 'store']);
+Route::post('/perizinan/upload-temp', [PerizinanController::class, 'uploadTemp']);
+Route::get('/perizinan/download/{id}', [PerizinanController::class, 'download']);
 Route::post('/perizinan/{id}', [PerizinanController::class, 'update']);
 Route::delete('/perizinan/{id}', [PerizinanController::class, 'destroy']);
 

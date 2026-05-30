@@ -10,6 +10,54 @@ use Illuminate\Http\Request;
 
 class PerizinanController extends Controller
 {
+    public function download($id)
+    {
+        try {
+            $doc = DB::table('dokumen')->where('id', $id)->first();
+            if (!$doc) {
+                return abort(404, 'Dokumen tidak ditemukan');
+            }
+
+            $perizinan = Perizinan::find($doc->perizinan_id);
+            if (!$perizinan) {
+                return abort(404, 'Data perizinan tidak ditemukan');
+            }
+
+            $disk = 'google';
+            $filePath = $doc->file_id ?? $doc->file_path;
+
+            // Jika path adalah URL lengkap (untuk kasus lama), coba ambil path dari URL jika mungkin, 
+            // tapi idealnya kita punya path asli di file_id.
+            
+            if (!\Illuminate\Support\Facades\Storage::disk($disk)->exists($filePath)) {
+                // Cobalah disk lokal jika di google tidak ada
+                $disk = 'public';
+                if (!\Illuminate\Support\Facades\Storage::disk($disk)->exists($filePath)) {
+                     return abort(404, 'File fisik tidak ditemukan di storage');
+                }
+            }
+
+            $displayFileName = (strpos($doc->nama_file, $perizinan->pemohon) !== false) 
+                ? $doc->nama_file 
+                : $perizinan->pemohon . '_' . $doc->nama_file;
+
+            $stream = \Illuminate\Support\Facades\Storage::disk($disk)->readStream($filePath);
+            $mimeType = \Illuminate\Support\Facades\Storage::disk($disk)->mimeType($filePath) ?? 'application/pdf';
+
+            return response()->streamDownload(function () use ($stream) {
+                fpassthru($stream);
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+            }, $displayFileName, [
+                'Content-Type' => $mimeType,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Download Error: ' . $e->getMessage());
+            return abort(500, 'Terjadi kesalahan saat mengunduh file');
+        }
+    }
+
     public function index()
     {
         $data = Perizinan::with(['lokasi', 'satker', 'dokumen'])
@@ -21,6 +69,42 @@ class PerizinanController extends Controller
             'message' => 'Daftar Perizinan',
             'data'    => $data
         ], 200);
+    }
+
+    public function uploadTemp(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|max:10240',
+            'nomor_izin' => 'required|string',
+            'pemohon' => 'required|string',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $request->nomor_izin . ' - ' . $request->pemohon);
+            $filename = $request->pemohon . '_' . $file->getClientOriginalName();
+            $filePath = $folderName . '/' . $filename;
+
+            // Simpan ke Google Drive
+            $file->storeAs($folderName, $filename, 'google');
+
+            $url = $filePath;
+            try {
+                $url = \Illuminate\Support\Facades\Storage::disk('google')->url($filePath);
+            } catch (\Exception $e) {}
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'nama_file' => $filename,
+                    'file_path' => $url,
+                    'file_id' => $filePath,
+                    'ukuran_file' => round($file->getSize() / 1024)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)
@@ -40,6 +124,7 @@ class PerizinanController extends Controller
             'geojson'        => 'nullable|string',
             'dokumen'         => 'nullable|array',
             'dokumen.*'       => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'uploaded_dokumen' => 'nullable|string', // JSON string metadata
             'lokasi'         => 'required|string', // Karena dikirim via FormData, ini akan di-decode
         ]);
 
@@ -56,16 +141,35 @@ class PerizinanController extends Controller
             }
 
             // Hapus geojson dan lokasi dari data perizinan utama
-            $perizinanData = collect($validated)->except(['geojson', 'lokasi', 'dokumen'])->toArray();
+            $perizinanData = collect($validated)->except(['geojson', 'lokasi', 'dokumen', 'uploaded_dokumen'])->toArray();
             $perizinan = Perizinan::create($perizinanData);
 
-            // Handle Multiple Files Upload (Dokumen Pendukung)
+            // Handle Pre-uploaded Documents Metadata
+            if ($request->has('uploaded_dokumen')) {
+                $uploadedDocs = json_decode($request->input('uploaded_dokumen'), true);
+                if (is_array($uploadedDocs)) {
+                    foreach ($uploadedDocs as $doc) {
+                        DB::table('dokumen')->insert([
+                            'perizinan_id' => $perizinan->id,
+                            'nama_file'    => $doc['nama_file'],
+                            'file_path'    => $doc['file_path'],
+                            'file_id'      => $doc['file_id'],
+                            'tipe_dokumen' => 'lainnya',
+                            'ukuran_file'  => $doc['ukuran_file'],
+                            'created_at'   => now(),
+                            'updated_at'   => now()
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Multiple Files Upload (Fallback)
             if ($request->hasFile('dokumen')) {
                 // Buat nama subfolder: "NomorIzin - NamaPemohon"
                 $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $validated['nomor_izin'] . ' - ' . $validated['pemohon']);
                 
                 foreach ($request->file('dokumen') as $file) {
-                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $filename = $validated['pemohon'] . '_' . $file->getClientOriginalName();
                     $filePath = $folderName . '/' . $filename;
                     
                     // Simpan ke Google Drive dalam subfolder per perizinan
@@ -78,7 +182,7 @@ class PerizinanController extends Controller
                     
                     DB::table('dokumen')->insert([
                         'perizinan_id' => $perizinan->id,
-                        'nama_file'    => $file->getClientOriginalName(),
+                        'nama_file'    => $filename,
                         'file_path'    => $url,
                         'file_id'      => $filePath, // Simpan path asli untuk penghapusan
                         'tipe_dokumen' => 'lainnya',
@@ -170,6 +274,7 @@ class PerizinanController extends Controller
             'tanggal_akhir'  => 'nullable|date',
             'pnbp'           => 'nullable|numeric',
             'geojson'        => 'nullable|string',
+            'uploaded_dokumen' => 'nullable|string',
             'lokasi'         => 'required|string',
         ]);
 
@@ -178,8 +283,27 @@ class PerizinanController extends Controller
             $perizinan = Perizinan::findOrFail($id);
             
             // Update data utama
-            $perizinanData = collect($validated)->except(['geojson', 'lokasi'])->toArray();
+            $perizinanData = collect($validated)->except(['geojson', 'lokasi', 'uploaded_dokumen'])->toArray();
             $perizinan->update($perizinanData);
+
+            // Handle Pre-uploaded Documents Metadata
+            if ($request->has('uploaded_dokumen')) {
+                $uploadedDocs = json_decode($request->input('uploaded_dokumen'), true);
+                if (is_array($uploadedDocs)) {
+                    foreach ($uploadedDocs as $doc) {
+                        DB::table('dokumen')->insert([
+                            'perizinan_id' => $perizinan->id,
+                            'nama_file'    => $doc['nama_file'],
+                            'file_path'    => $doc['file_path'],
+                            'file_id'      => $doc['file_id'],
+                            'tipe_dokumen' => 'lainnya',
+                            'ukuran_file'  => $doc['ukuran_file'],
+                            'created_at'   => now(),
+                            'updated_at'   => now()
+                        ]);
+                    }
+                }
+            }
 
             // Update Lokasi (Delete & Re-insert)
             PerizinanLokasi::where('perizinan_id', $id)->delete();
@@ -233,7 +357,7 @@ class PerizinanController extends Controller
                 $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $validated['nomor_izin'] . ' - ' . $validated['pemohon']);
                 
                 foreach ($request->file('dokumen') as $file) {
-                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $filename = $validated['pemohon'] . '_' . $file->getClientOriginalName();
                     $filePath = $folderName . '/' . $filename;
                     
                     // Simpan ke Google Drive dalam subfolder per perizinan
@@ -246,7 +370,7 @@ class PerizinanController extends Controller
                     
                     DB::table('dokumen')->insert([
                         'perizinan_id' => $perizinan->id,
-                        'nama_file'    => $file->getClientOriginalName(),
+                        'nama_file'    => $filename,
                         'file_path'    => $url,
                         'file_id'      => $filePath,
                         'tipe_dokumen' => 'lainnya',

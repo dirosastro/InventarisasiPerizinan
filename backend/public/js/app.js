@@ -477,7 +477,9 @@ function renderPerizinanOnMap() {
                                 icon: item.icon,
                                 masa_berlaku_awal: item.tanggal_terbit,
                                 masa_berlaku_akhir: item.tanggal_akhir,
-                                pnbp: item.pnbp || 0
+                                pnbp: item.pnbp || 0,
+                                dokumen: item.dokumen || [],
+                                riwayat: item.riwayat || []
                             }
                         });
                     }
@@ -787,15 +789,17 @@ function openDetailPanel(props) {
         if (props.dokumen && props.dokumen.length > 0) {
             props.dokumen.forEach(doc => {
                 const isUrl = doc.file_path && (doc.file_path.startsWith('http://') || doc.file_path.startsWith('https://'));
-                const docUrl = isUrl ? doc.file_path : window.API_BASE_URL + '/storage/' + doc.file_path;
+                const docUrl = (window.API_BASE_URL || '') + '/api/perizinan/download/' + doc.id;
                 const div = document.createElement('div');
                 div.className = 'flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-accent hover:bg-blue-50 transition-colors group cursor-pointer';
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
                         <i class="ph-fill ph-file-pdf text-red-500 text-2xl"></i>
                         <div>
-                            <h4 class="text-xs font-semibold text-gray-800 group-hover:text-primary">${doc.nama_dokumen}</h4>
-                            <p class="text-[10px] text-gray-500">${doc.file_size ? (doc.file_size / 1024).toFixed(1) + ' KB' : 'PDF Document'}</p>
+                            <h4 class="text-xs font-semibold text-gray-800 group-hover:text-primary">
+                                ${props.pemohon && doc.nama_file ? (doc.nama_file.startsWith(props.pemohon) ? doc.nama_file : props.pemohon + '_' + doc.nama_file) : (doc.nama_file || 'Tanpa Nama')}
+                            </h4>
+                            <p class="text-[10px] text-gray-500">${doc.ukuran_file ? doc.ukuran_file + ' KB' : 'PDF Document'}</p>
                         </div>
                     </div>
                     <a href="${docUrl}" target="_blank" class="text-gray-400 hover:text-accent">

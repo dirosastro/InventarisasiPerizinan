@@ -259,7 +259,7 @@ const parseCoordinates = (str) => {
 // Function to fetch and process Perizinan
 async function fetchPerizinan() {
     try {
-        const response = await fetch('/api/perizinan');
+        const response = await fetch('../backend/public/api/perizinan');
         const result = await response.json();
         if (!result.success) return;
         allPerizinanData = result.data;
@@ -778,8 +778,55 @@ function openDetailPanel(props) {
     document.getElementById('teknis-sta-akhir').textContent = props.sta_akhir || '-';
     document.getElementById('teknis-panjang').textContent = props.panjang_dimanfaatkan ? props.panjang_dimanfaatkan + ' Km' : '-';
 
+    // Tab Dokumen (Dynamic)
+    const tabDokumen = document.getElementById('tab-dokumen');
+    if (tabDokumen && allPerizinanData) {
+        const permit = allPerizinanData.find(p => p.id === props.id);
+        const docs = permit ? permit.dokumen : [];
+        
+        if (docs && docs.length > 0) {
+            tabDokumen.innerHTML = docs.map(doc => `
+                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-accent hover:bg-blue-50 transition-colors group cursor-pointer" onclick="window.open('${doc.file_path}', '_blank')">
+                    <div class="flex items-center gap-3">
+                        <i class="ph-fill ${getFileIcon(doc.nama_file)} text-2xl" style="color: ${doc.nama_file.endsWith('.pdf') ? '#ef4444' : '#3b82f6'}"></i>
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-800 group-hover:text-primary">${doc.nama_file}</h4>
+                            <p class="text-[10px] text-gray-500">${doc.ukuran_file} KB • ${new Date(doc.created_at).toLocaleDateString('id-ID')}</p>
+                        </div>
+                    </div>
+                    <a href="${doc.file_path}" target="_blank" class="text-gray-400 hover:text-accent" onclick="event.stopPropagation()">
+                        <i class="ph ph-download-simple text-lg"></i>
+                    </a>
+                </div>
+            `).join('');
+        } else {
+            tabDokumen.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-8 text-gray-400">
+                    <i class="ph ph-file-x text-4xl mb-2"></i>
+                    <p class="text-xs">Tidak ada dokumen pendukung</p>
+                </div>
+            `;
+        }
+    }
+
     // Show Panel
     detailPanel.classList.remove('translate-x-full');
+}
+
+// Helper to get icon based on file extension
+function getFileIcon(filename) {
+    if (!filename) return 'ph-file';
+    const ext = filename.split('.').pop().toLowerCase();
+    switch (ext) {
+        case 'pdf': return 'ph-file-pdf';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif': return 'ph-file-image';
+        case 'doc':
+        case 'docx': return 'ph-file-doc';
+        default: return 'ph-file';
+    }
 }
 
 // Close Detail Panel

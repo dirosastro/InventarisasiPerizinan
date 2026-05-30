@@ -4,7 +4,7 @@ let allPpk = [];
 let allRuasJalan = [];
 let geojsonData = null;
 let editId = new URLSearchParams(window.location.search).get('id');
-let selectedFiles = []; // Array untuk menampung File baru
+let uploadedFilesMetadata = []; // Metadata file yang sudah berhasil diunggah
 let deletedDokumenIds = []; // Array untuk menampung ID dokumen yang dihapus
 
 const API_BASE = window.API_BASE_URL || '';
@@ -378,11 +378,7 @@ if (form) {
         formData.append('icon', iconInput.value || '');
         formData.append('geojson', geojsonData || '');
         formData.append('lokasi', JSON.stringify(lokasiData));
-
-        // Tambahkan banyak dokumen pendukung dari array selectedFiles
-        selectedFiles.forEach(file => {
-            formData.append('dokumen[]', file);
-        });
+        formData.append('uploaded_dokumen', JSON.stringify(uploadedFilesMetadata));
 
         // Tambahkan ID dokumen yang akan dihapus jika ada
         if (deletedDokumenIds.length > 0) {
@@ -499,19 +495,20 @@ async function fetchAndPopulateData() {
         // Tampilkan Dokumen Pendukung Eksisting
         const existingDocList = document.getElementById('existing-dokumen-list');
         if (existingDocList && data.dokumen && data.dokumen.length > 0) {
-            existingDocList.innerHTML = '<p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Dokumen Tersimpan:</p>';
-            data.dokumen.forEach(doc => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs';
-                item.innerHTML = `
-                    <div class="flex items-center gap-2 text-gray-700">
-                        <i class="ph ph-file-pdf text-lg text-red-500"></i>
-                        <a href="${doc.file_path}" target="_blank" class="font-medium hover:text-accent underline truncate max-w-[250px]">${doc.nama_file}</a>
-                    </div>
-                    <button type="button" class="btn-hapus-dokumen-eksisting text-red-500 hover:text-red-700 p-1" data-id="${doc.id}">
-                        <i class="ph ph-trash text-lg"></i>
-                    </button>
-                `;
+                existingDocList.innerHTML = '<p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Dokumen Tersimpan:</p>';
+                data.dokumen.forEach(doc => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs';
+                    const displayFileName = (data.pemohon && doc.nama_file) ? (doc.nama_file.startsWith(data.pemohon) ? doc.nama_file : data.pemohon + '_' + doc.nama_file) : (doc.nama_file || 'Tanpa Nama');
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2 text-gray-700">
+                            <i class="ph ph-file-pdf text-lg text-red-500"></i>
+                            <a href="${API_BASE}/api/perizinan/download/${doc.id}" target="_blank" class="font-medium hover:text-accent underline truncate max-w-[250px]">${displayFileName}</a>
+                        </div>
+                        <button type="button" class="btn-hapus-dokumen-eksisting text-red-500 hover:text-red-700 p-1" data-id="${doc.id}">
+                            <i class="ph ph-trash text-lg"></i>
+                        </button>
+                    `;
                 existingDocList.appendChild(item);
 
                 item.querySelector('.btn-hapus-dokumen-eksisting').onclick = () => {
@@ -544,42 +541,117 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (docInput) {
         docInput.addEventListener('change', () => {
             const files = Array.from(docInput.files);
-            // Menambahkan file baru ke array global
             files.forEach(file => {
-                // Hindari duplikat berdasarkan nama dan ukuran
-                if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
-                    selectedFiles.push(file);
-                }
+                uploadFileWithProgress(file);
             });
-            renderSelectedFiles();
-            docInput.value = ''; // Reset input agar bisa pilih file yang sama lagi jika dihapus
+            docInput.value = ''; // Reset
         });
     }
 
-    function renderSelectedFiles() {
+    function uploadFileWithProgress(file) {
         if (!docList) return;
-        docList.innerHTML = selectedFiles.length > 0 ? '<p class="text-[10px] font-bold text-blue-400 uppercase mb-2">File Baru Siap Unggah:</p>' : '';
-        selectedFiles.forEach((file, index) => {
-            const size = (file.size / 1024).toFixed(1);
-            const item = document.createElement('div');
-            item.className = 'flex items-center justify-between p-2 bg-blue-50 border border-blue-100 rounded-lg text-xs animate-fade-in';
-            item.innerHTML = `
-                <div class="flex items-center gap-2 text-blue-700">
-                    <i class="ph ph-file-text text-lg"></i>
-                    <span class="font-medium truncate max-w-[200px]">${file.name}</span>
-                    <span class="text-blue-400">(${size} KB)</span>
-                </div>
-                <button type="button" class="text-red-500 hover:text-red-700 p-1 btn-remove-file">
-                    <i class="ph ph-minus-circle text-lg"></i>
-                </button>
-            `;
-            docList.appendChild(item);
 
-            item.querySelector('.btn-remove-file').onclick = () => {
-                selectedFiles.splice(index, 1);
-                renderSelectedFiles();
-            };
+        // Validasi Nomor Izin & Pemohon
+        const nomorIzin = document.getElementById('nomor_izin').value;
+        const pemohon = document.getElementById('pemohon').value;
+
+        if (!nomorIzin || !pemohon) {
+            showToast('Harap isi Nomor Izin dan Pemohon terlebih dahulu sebelum mengunggah dokumen!', 'error');
+            return;
+        }
+
+        const fileId = 'upload-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        const size = (file.size / 1024).toFixed(1);
+
+        // Buat elemen progress bar
+        const item = document.createElement('div');
+        item.id = fileId;
+        item.className = 'bg-white border border-gray-100 rounded-xl p-3 space-y-2 shadow-sm animate-fade-in';
+        item.innerHTML = `
+            <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2 text-gray-700 font-medium">
+                    <i class="ph ph-file-text text-lg text-accent"></i>
+                    <span class="truncate max-w-[200px]">${file.name}</span>
+                    <span class="text-gray-400">(${size} KB)</span>
+                </div>
+                <span class="progress-percent font-bold text-accent">0%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                <div class="progress-bar bg-accent h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="upload-status text-[10px] text-gray-500 italic">Menghubungkan...</div>
+        `;
+        docList.appendChild(item);
+
+        const xhr = new XMLHttpRequest();
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('nomor_izin', nomorIzin);
+        formData.append('pemohon', pemohon);
+
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                item.querySelector('.progress-bar').style.width = percent + '%';
+                item.querySelector('.progress-percent').textContent = percent + '%';
+                item.querySelector('.upload-status').textContent = percent < 100 ? 'Mengunggah ke server...' : 'Memproses ke Google Drive...';
+            }
         });
+
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    const result = JSON.parse(xhr.responseText);
+                    if (result.success) {
+                        item.querySelector('.upload-status').innerHTML = '<span class="text-green-500 font-bold"><i class="ph ph-check-circle"></i> Berhasil diunggah ke Google Drive</span>';
+                        item.querySelector('.progress-bar').classList.replace('bg-accent', 'bg-green-500');
+                        item.querySelector('.progress-percent').classList.replace('text-accent', 'text-green-500');
+                        
+                        // Update nama tampilan dengan nama yang sudah diproses di server
+                        const nameSpan = item.querySelector('span.truncate');
+                        if (nameSpan) nameSpan.textContent = result.data.nama_file;
+
+                        // Tambahkan metadata ke array global
+                        uploadedFilesMetadata.push(result.data);
+
+                        // Ganti dengan tombol hapus (mock hapus dari list lokal)
+                        const actions = document.createElement('div');
+                        actions.className = 'flex justify-end';
+                        actions.innerHTML = `
+                            <button type="button" class="text-red-500 hover:text-red-700 p-1 text-[10px] font-bold flex items-center gap-1">
+                                <i class="ph ph-trash"></i> BATALKAN
+                            </button>
+                        `;
+                        item.appendChild(actions);
+                        actions.querySelector('button').onclick = () => {
+                            uploadedFilesMetadata = uploadedFilesMetadata.filter(m => m.file_id !== result.data.file_id);
+                            item.remove();
+                        };
+                    } else {
+                        handleUploadError(item, result.message || 'Gagal diproses');
+                    }
+                } else {
+                    handleUploadError(item, 'Kesalahan Jaringan / Server');
+                }
+            }
+        };
+
+        xhr.open('POST', (window.API_BASE_URL || '') + '/api/perizinan/upload-temp');
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.send(formData);
+    }
+
+    function handleUploadError(item, message) {
+        item.querySelector('.progress-bar').classList.replace('bg-accent', 'bg-red-500');
+        item.querySelector('.progress-percent').classList.replace('text-accent', 'text-red-500');
+        item.querySelector('.upload-status').innerHTML = `<span class="text-red-500 font-bold"><i class="ph ph-warning"></i> ${message}</span>`;
+        
+        const retryBtn = document.createElement('button');
+        retryBtn.type = 'button';
+        retryBtn.className = 'mt-2 text-[10px] font-bold text-gray-500 hover:text-gray-700';
+        retryBtn.textContent = 'Hapus & Coba Lagi';
+        retryBtn.onclick = () => item.remove();
+        item.appendChild(retryBtn);
     }
 
     const btnTambahLokasi = document.getElementById('btn-tambah-lokasi');
