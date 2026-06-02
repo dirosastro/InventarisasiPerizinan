@@ -110,9 +110,46 @@ const getStatusLabel = (status) => {
         case 'aktif': return 'Aktif';
         case 'hampir_habis': return 'Hampir Habis';
         case 'kadaluarsa': return 'Kadaluarsa';
-        default: return 'Tidak Diketahui';
+        default: return status;
     }
 };
+
+/**
+ * Get icon and color based on file extension
+ * @param {string} filename 
+ * @returns {object} { icon: string, color: string }
+ */
+function getFileIconInfo(filename) {
+    if (!filename) return { icon: 'ph-file', color: 'text-gray-400' };
+    
+    const ext = filename.split('.').pop().toLowerCase();
+    
+    switch (ext) {
+        case 'pdf':
+            return { icon: 'ph-file-pdf', color: 'text-red-500' };
+        case 'doc':
+        case 'docx':
+            return { icon: 'ph-file-doc', color: 'text-blue-500' };
+        case 'xls':
+        case 'xlsx':
+            return { icon: 'ph-file-xls', color: 'text-green-500' };
+        case 'ppt':
+        case 'pptx':
+            return { icon: 'ph-file-ppt', color: 'text-orange-500' };
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'svg':
+            return { icon: 'ph-file-image', color: 'text-purple-500' };
+        case 'zip':
+        case 'rar':
+        case '7z':
+            return { icon: 'ph-file-archive', color: 'text-yellow-600' };
+        default:
+            return { icon: 'ph-file', color: 'text-gray-500' };
+    }
+}
 
 // Helper to get PPK color dynamically
 const getPpkColor = (ppk) => {
@@ -786,20 +823,22 @@ function openDetailPanel(props) {
     const docContainer = document.getElementById('tab-dokumen');
     if (docContainer) {
         docContainer.innerHTML = '';
-        if (props.dokumen && props.dokumen.length > 0) {
+                if (props.dokumen && props.dokumen.length > 0) {
             props.dokumen.forEach(doc => {
                 const isUrl = doc.file_path && (doc.file_path.startsWith('http://') || doc.file_path.startsWith('https://'));
                 const docUrl = (window.API_BASE_URL || '') + '/api/perizinan/download/' + doc.id;
+                const fileInfo = getFileIconInfo(doc.nama_file || doc.file_path);
+                
                 const div = document.createElement('div');
                 div.className = 'flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-accent hover:bg-blue-50 transition-colors group cursor-pointer';
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <i class="ph-fill ph-file-pdf text-red-500 text-2xl"></i>
+                        <i class="ph-fill ${fileInfo.icon} ${fileInfo.color} text-2xl"></i>
                         <div>
                             <h4 class="text-xs font-semibold text-gray-800 group-hover:text-primary">
                                 ${props.pemohon && doc.nama_file ? (doc.nama_file.startsWith(props.pemohon) ? doc.nama_file : props.pemohon + '_' + doc.nama_file) : (doc.nama_file || 'Tanpa Nama')}
                             </h4>
-                            <p class="text-[10px] text-gray-500">${doc.ukuran_file ? doc.ukuran_file + ' KB' : 'PDF Document'}</p>
+                            <p class="text-[10px] text-gray-500">${doc.ukuran_file ? doc.ukuran_file + ' KB' : 'File Dokumen'}</p>
                         </div>
                     </div>
                     <a href="${docUrl}" target="_blank" class="text-gray-400 hover:text-accent">
