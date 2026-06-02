@@ -9,7 +9,7 @@ class Dokumen extends Model
 {
     use HasFactory;
     protected $table = 'dokumen';
-    protected $fillable = ['perizinan_id', 'nama_file', 'file_path', 'tipe_dokumen', 'ukuran_file'];
+    protected $fillable = ['perizinan_id', 'nama_file', 'file_path', 'file_id', 'tipe_dokumen', 'ukuran_file'];
 
     public function perizinan()
     {

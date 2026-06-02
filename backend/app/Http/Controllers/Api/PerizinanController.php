@@ -149,46 +149,42 @@ class PerizinanController extends Controller
                 $uploadedDocs = json_decode($request->input('uploaded_dokumen'), true);
                 if (is_array($uploadedDocs)) {
                     foreach ($uploadedDocs as $doc) {
-                        DB::table('dokumen')->insert([
+                        \App\Models\Dokumen::create([
                             'perizinan_id' => $perizinan->id,
                             'nama_file'    => $doc['nama_file'],
                             'file_path'    => $doc['file_path'],
                             'file_id'      => $doc['file_id'],
                             'tipe_dokumen' => 'lainnya',
                             'ukuran_file'  => $doc['ukuran_file'],
-                            'created_at'   => now(),
-                            'updated_at'   => now()
                         ]);
                     }
                 }
             }
-
+ 
             // Handle Multiple Files Upload (Fallback)
             if ($request->hasFile('dokumen')) {
                 // Buat nama subfolder: "NomorIzin - NamaPemohon"
                 $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $validated['nomor_izin'] . ' - ' . $validated['pemohon']);
-                
+                 
                 foreach ($request->file('dokumen') as $file) {
                     $filename = $validated['pemohon'] . '_' . $file->getClientOriginalName();
                     $filePath = $folderName . '/' . $filename;
-                    
+                     
                     // Simpan ke Google Drive dalam subfolder per perizinan
                     $file->storeAs($folderName, $filename, 'google');
-                    
+                     
                     $url = $filePath;
                     try {
                         $url = \Illuminate\Support\Facades\Storage::disk('google')->url($filePath);
                     } catch (\Exception $e) {}
-                    
-                    DB::table('dokumen')->insert([
+                     
+                    \App\Models\Dokumen::create([
                         'perizinan_id' => $perizinan->id,
                         'nama_file'    => $filename,
                         'file_path'    => $url,
                         'file_id'      => $filePath, // Simpan path asli untuk penghapusan
                         'tipe_dokumen' => 'lainnya',
                         'ukuran_file'  => round($file->getSize() / 1024), // KB
-                        'created_at'   => now(),
-                        'updated_at'   => now()
                     ]);
                 }
             }
@@ -291,15 +287,13 @@ class PerizinanController extends Controller
                 $uploadedDocs = json_decode($request->input('uploaded_dokumen'), true);
                 if (is_array($uploadedDocs)) {
                     foreach ($uploadedDocs as $doc) {
-                        DB::table('dokumen')->insert([
+                        \App\Models\Dokumen::create([
                             'perizinan_id' => $perizinan->id,
                             'nama_file'    => $doc['nama_file'],
                             'file_path'    => $doc['file_path'],
                             'file_id'      => $doc['file_id'],
                             'tipe_dokumen' => 'lainnya',
                             'ukuran_file'  => $doc['ukuran_file'],
-                            'created_at'   => now(),
-                            'updated_at'   => now()
                         ]);
                     }
                 }
@@ -368,15 +362,13 @@ class PerizinanController extends Controller
                         $url = \Illuminate\Support\Facades\Storage::disk('google')->url($filePath);
                     } catch (\Exception $e) {}
                     
-                    DB::table('dokumen')->insert([
+                    \App\Models\Dokumen::create([
                         'perizinan_id' => $perizinan->id,
                         'nama_file'    => $filename,
                         'file_path'    => $url,
                         'file_id'      => $filePath,
                         'tipe_dokumen' => 'lainnya',
                         'ukuran_file'  => round($file->getSize() / 1024),
-                        'created_at'   => now(),
-                        'updated_at'   => now()
                     ]);
                 }
             }
