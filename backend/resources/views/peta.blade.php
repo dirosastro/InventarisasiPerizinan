@@ -121,33 +121,30 @@
 
 <body class="bg-gray-50 text-gray-800 font-['Inter'] h-screen overflow-hidden flex flex-col">
 
-    <!-- HEADER -->
-    <header
-        class="bg-primary text-white h-[60px] flex items-center justify-between px-4 lg:px-6 shadow-md z-50 shrink-0">
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-2 font-bold text-lg tracking-wide">
+    <header class="bg-primary text-white h-[60px] flex items-center justify-between px-4 lg:px-6 shadow-md z-50 shrink-0">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('home') }}" class="flex items-center gap-2 font-bold text-lg tracking-wide">
                 <img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-8 w-auto">
-                <span>Siperjalan</span>
-            </div>
-            <!-- Navigation Links -->
-            <nav class="hidden md:flex items-center gap-1 text-sm font-medium" id="nav-links">
-                <a href="{{ route('home') }}" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Beranda</a>
-                <a href="{{ route('dashboard') }}" id="nav-dashboard"
-                    class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Dashboard Admin</a>
-                <a href="{{ route('peta') }}" class="px-3 py-2 rounded-md bg-secondary text-white transition-colors">Peta
-                    Pemanfaatan</a>
-                <a href="{{ route('perizinan_view') }}" id="nav-perizinan"
-                    class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Data Perizinan</a>
-                <a href="{{ route('users') }}" id="admin-nav"
-                    class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Manajemen User</a>
-            </nav>
+                <span class="hidden sm:inline">Siperjalan</span>
+            </a>
+            <button id="mobile-menu-toggle" class="md:hidden text-white p-2">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
         </div>
 
         <div class="flex items-center gap-4">
+            <nav class="hidden md:flex items-center gap-1 text-sm font-medium" id="nav-links">
+                <a href="{{ route('home') }}" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Beranda</a>
+                <a href="{{ route('dashboard') }}" id="nav-dashboard" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Dashboard</a>
+                <a href="{{ route('peta') }}" class="px-3 py-2 rounded-md bg-secondary text-white transition-colors">Peta</a>
+                <a href="{{ route('perizinan_view') }}" id="nav-perizinan" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors text-nowrap">Data Izin</a>
+                <a href="{{ route('users') }}" id="admin-nav" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">User</a>
+            </nav>
+
             <div class="relative hidden sm:block">
                 <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 <input type="text" id="search-input" list="ruas-list" placeholder="Cari ruas / izin..."
-                    class="bg-secondary/50 text-white placeholder-gray-300 text-sm rounded-full pl-9 pr-10 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent w-[280px] transition-all">
+                    class="bg-secondary/50 text-white placeholder-gray-300 text-sm rounded-full pl-9 pr-10 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent w-[200px] lg:w-[280px] transition-all">
                 <button id="clear-search"
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white hidden transition-all">
                     <i class="ph ph-x-circle text-lg"></i>
@@ -155,7 +152,7 @@
                 <datalist id="ruas-list"></datalist>
             </div>
 
-            <div id="auth-section">
+            <div class="hidden sm:flex items-center gap-4" id="auth-section">
                 <!-- Dinamis oleh JS -->
             </div>
 
@@ -210,20 +207,28 @@
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex overflow-hidden relative">
 
+        <!-- MOBILE OVERLAY -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
+
         <!-- LEFT SIDEBAR -->
         <aside id="left-sidebar"
-            class="w-[280px] bg-white shadow-[4px_0_10px_rgba(0,0,0,0.05)] z-40 flex flex-col h-full shrink-0 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300 relative">
+            class="fixed lg:relative inset-y-0 left-0 w-[280px] bg-white shadow-[4px_0_10px_rgba(0,0,0,0.05)] z-40 flex flex-col h-full shrink-0 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300 -translate-x-full lg:translate-x-0">
 
             <button id="toggle-sidebar"
-                class="absolute -right-8 top-1/2 -translate-y-1/2 bg-white border border-l-0 border-gray-200 w-8 h-16 rounded-r-xl shadow-[4px_2px_10px_rgba(0,0,0,0.05)] z-50 flex items-center justify-center hover:bg-gray-50 group transition-all duration-300">
+                class="hidden lg:flex absolute -right-8 top-1/2 -translate-y-1/2 bg-white border border-l-0 border-gray-200 w-8 h-16 rounded-r-xl shadow-[4px_2px_10px_rgba(0,0,0,0.05)] z-50 items-center justify-center hover:bg-gray-50 group transition-all duration-300">
                 <i class="ph ph-caret-left text-gray-400 group-hover:text-primary transition-transform duration-300"
                     id="toggle-icon"></i>
             </button>
 
             <div class="p-4 border-b border-gray-100">
-                <h2 class="font-semibold text-gray-700 flex items-center gap-2 mb-4">
-                    <i class="ph ph-funnel"></i> Filter Data
-                </h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-gray-700 flex items-center gap-2">
+                        <i class="ph ph-funnel"></i> Filter Data
+                    </h2>
+                    <button class="lg:hidden text-gray-400" id="close-sidebar">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
 
                 <div class="space-y-4">
                     <div>

@@ -116,11 +116,29 @@
                     <span>Akses Admin</span>
                 </a>
             </div>
+
+            <!-- MOBILE MENU BUTTON -->
+            <button id="mobile-menu-btn" class="lg:hidden text-bps-navy p-2 focus:outline-none">
+                <i class="ph ph-list text-3xl"></i>
+            </button>
+        </div>
+
+        <!-- MOBILE MENU CONTENT -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-t border-gray-100 flex flex-col p-6 space-y-4 font-semibold text-bps-navy animate-in">
+            <a href="{{ route('home') }}" class="text-bps-blue py-2 border-b border-gray-50">Beranda</a>
+            <a href="{{ route('peta') }}" class="hover:text-bps-blue transition-colors py-2 border-b border-gray-50">Peta Pemanfaatan</a>
+            <a href="{{ route('perizinan_view') }}" id="mobile-nav-perizinan-link" class="hidden hover:text-bps-blue transition-colors py-2 border-b border-gray-50">Data Perizinan</a>
+            <a href="{{ route('login') }}" id="mobile-nav-login-btn"
+                class="bg-bps-blue text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-sm">
+                <i class="ph ph-user-circle text-lg"></i>
+                <span>Akses Admin</span>
+            </a>
+        </div>
         </div>
     </nav>
 
     <!-- HERO SECTION -->
-    <section class="relative min-h-[calc(100vh-80px)] flex flex-col justify-center items-center overflow-hidden">
+    <section class="relative min-h-[calc(100vh-80px)] flex flex-col justify-center items-center overflow-hidden py-20">
         <img src="{{ asset('img/back_login.png') }}" alt="Background" class="absolute inset-0 w-full h-full object-cover">
         <div class="absolute inset-0 hero-overlay"></div>
 
@@ -139,8 +157,9 @@
                     class="bg-white p-2 rounded-lg shadow-2xl flex flex-col md:flex-row items-center gap-2 max-w-2xl mx-auto animate-in delay-2">
                     <div class="flex-1 w-full px-4 flex items-center gap-3">
                         <i class="ph ph-magnifying-glass text-bps-gray text-xl"></i>
-                        <input type="text" id="hero-search-input" placeholder="Cari data perizinan atau pemohon..."
+                        <input type="text" id="hero-search-input" list="search-suggestions" placeholder="Cari data perizinan atau pemohon..."
                             class="w-full py-3 focus:outline-none text-gray-700 font-medium">
+                        <datalist id="search-suggestions"></datalist>
                     </div>
                     <button id="hero-search-btn"
                         class="bg-bps-blue text-white px-8 py-3 rounded-md font-bold hover:bg-blue-700 transition-all w-full md:w-auto">
@@ -210,46 +229,122 @@
         // Check Login Status
         document.addEventListener('DOMContentLoaded', () => {
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const perizinanLink = document.getElementById('nav-perizinan-link');
-            const navBtn = document.getElementById('nav-login-btn');
+            
+            // Handle both desktop and mobile nav
+            const perizinanLinks = [
+                document.getElementById('nav-perizinan-link'),
+                document.getElementById('mobile-nav-perizinan-link')
+            ];
+            const navBtns = [
+                document.getElementById('nav-login-btn'),
+                document.getElementById('mobile-nav-login-btn')
+            ];
             
             if (isLoggedIn) {
-                navBtn.innerHTML = '<i class="ph ph-sign-out text-lg"></i><span>Keluar Admin</span>';
-                navBtn.className = 'bg-red-600 text-white px-6 py-2.5 rounded-md hover:bg-red-700 transition-all flex items-center gap-2 shadow-sm';
-                navBtn.href = '#';
-                navBtn.onclick = (e) => {
-                    e.preventDefault();
-                    localStorage.removeItem('isLoggedIn');
-                    window.location.reload();
-                };
-                if (perizinanLink) perizinanLink.classList.remove('hidden');
+                navBtns.forEach(btn => {
+                    if (!btn) return;
+                    btn.innerHTML = '<i class="ph ph-sign-out text-lg"></i><span>Keluar Admin</span>';
+                    btn.className = 'bg-red-600 text-white px-6 py-2.5 rounded-md hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-sm w-full lg:w-auto';
+                    btn.href = '#';
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        localStorage.removeItem('isLoggedIn');
+                        window.location.reload();
+                    };
+                });
+                perizinanLinks.forEach(link => {
+                    if (link) link.classList.remove('hidden');
+                });
             } else {
-                if (perizinanLink) perizinanLink.classList.add('hidden');
+                perizinanLinks.forEach(link => {
+                    if (link) link.classList.add('hidden');
+                });
             }
 
-            // Optional: Fetch Dynamic Stats for Cards
+            // Mobile Menu Toggle Logic
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                    const icon = mobileMenuBtn.querySelector('i');
+                    if (mobileMenu.classList.contains('hidden')) {
+                        icon.classList.replace('ph-x', 'ph-list');
+                    } else {
+                        icon.classList.replace('ph-list', 'ph-x');
+                    }
+                });
+            }
+
+            // Fetch Data for KPI & Autocomplete
             const API_URL = "{{ url('/api/perizinan') }}";
             fetch(API_URL)
                 .then(r => r.json())
                 .then(res => {
                     if (res.success) {
                         const data = res.data;
+                        
+                        // KPI Update
                         document.getElementById('kpi-total').textContent = data.length.toLocaleString('id-ID') + '+';
                         document.getElementById('kpi-aktif').textContent = data.filter(i => i.status === 'aktif').length.toLocaleString('id-ID');
                         const pnbp = data.reduce((sum, i) => sum + (parseFloat(i.pnbp) || 0), 0);
                         document.getElementById('kpi-pnbp').textContent = 'Rp ' + (pnbp / 1000000).toLocaleString('id-ID', {maximumFractionDigits: 1}) + ' Juta';
+
+                        // Prepare Autocomplete Data
+                        const allSuggestions = [];
+                        const suggestionsSet = new Set();
+                        data.forEach(item => {
+                            if (item.nomor_izin) suggestionsSet.add(item.nomor_izin);
+                            if (item.pemohon) suggestionsSet.add(item.pemohon);
+                        });
+                        allSuggestions.push(...([...suggestionsSet].sort()));
+
+                        const heroSearchInput = document.getElementById('hero-search-input');
+                        const datalist = document.getElementById('search-suggestions');
+
+                        if (heroSearchInput && datalist) {
+                            heroSearchInput.addEventListener('input', () => {
+                                const val = heroSearchInput.value.trim();
+                                datalist.innerHTML = ''; // Kosongkan dulu
+                                
+                                if (val.length >= 3) {
+                                    // Berikan saran yang sesuai (opsional: jika diletakkan semua ke datalist, 
+                                    // browser otomatis memfilter, tapi kita ingin muncul HANYA saat >= 3 huruf)
+                                    allSuggestions.forEach(s => {
+                                        if (s.toLowerCase().includes(val.toLowerCase())) {
+                                            const option = document.createElement('option');
+                                            option.value = s;
+                                            datalist.appendChild(option);
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     }
                 });
 
             // Hero Search Button logic
             const searchBtn = document.getElementById('hero-search-btn');
+            const searchInput = document.getElementById('hero-search-input');
+            
+            const doSearch = () => {
+                const query = searchInput.value.trim();
+                if (query) {
+                    window.location.href = "{{ route('peta') }}?q=" + encodeURIComponent(query);
+                } else {
+                    window.location.href = "{{ route('peta') }}";
+                }
+            };
+
             if (searchBtn) {
-                searchBtn.addEventListener('click', () => {
-                    const query = document.getElementById('hero-search-input').value;
-                    if (query) {
-                        window.location.href = "{{ route('peta') }}?q=" + encodeURIComponent(query);
-                    } else {
-                        window.location.href = "{{ route('peta') }}";
+                searchBtn.addEventListener('click', doSearch);
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        doSearch();
                     }
                 });
             }

@@ -33,16 +33,37 @@
     </style>
 </head>
 <body class="flex min-h-screen">
+    <!-- Sidebar Mobile Toggle -->
+    <div class="lg:hidden fixed top-0 left-0 w-full bg-white border-b border-gray-100 z-[30] px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center shadow-lg">
+                <i class="ph-fill ph-road-horizon text-white text-lg"></i>
+            </div>
+            <h1 class="font-bold text-gray-900 text-sm">Siperjalan</h1>
+        </div>
+        <button id="mobile-sidebar-toggle" class="p-2 text-gray-500">
+            <i class="ph ph-list text-2xl"></i>
+        </button>
+    </div>
+
+    <!-- Backdrop -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-[40] hidden lg:hidden"></div>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-white border-r border-gray-100 flex flex-col fixed h-full z-20">
-        <div class="p-6 border-b border-gray-50 flex items-center gap-3">
-            <div class="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                <i class="ph-fill ph-road-horizon text-white text-2xl"></i>
+    <aside id="sidebar" class="w-64 bg-white border-r border-gray-100 flex flex-col fixed h-full z-[50] transition-transform duration-300 -translate-x-full lg:translate-x-0">
+        <div class="p-6 border-b border-gray-50 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                    <i class="ph-fill ph-road-horizon text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-gray-900 tracking-tight leading-none">Siperjalan</h1>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">BPJN NTB</p>
+                </div>
             </div>
-            <div>
-                <h1 class="font-extrabold text-gray-900 tracking-tight leading-none">Siperjalan</h1>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">BPJN NTB</p>
-            </div>
+            <button class="lg:hidden text-gray-400" id="close-sidebar">
+                <i class="ph ph-x text-xl"></i>
+            </button>
         </div>
 
         <nav class="flex-1 p-4 space-y-1 mt-4">
@@ -109,7 +130,7 @@
     </script>
 
     <!-- Main Content -->
-    <main class="flex-1 ml-64 p-8">
+    <main class="flex-1 lg:ml-64 p-4 md:p-8 mt-14 lg:mt-0">
         <div class="max-w-7xl mx-auto space-y-6">
             
             <!-- Header Section -->
@@ -134,9 +155,9 @@
             <!-- Filter & Search Toolbar -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 justify-between items-center">
                 <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                    <div class="relative min-w-[250px] flex-1 lg:flex-none">
+                    <div class="relative min-w-full lg:min-w-[250px] flex-1 lg:flex-none">
                         <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" id="search-input" list="ruas-list" placeholder="Cari nama pemohon, nomor izin..." class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
+                        <input type="text" id="search-input" list="ruas-list" placeholder="Cari pemohon, nomor izin..." class="w-full pl-9 pr-4 py-2.5 lg:py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-gray-50/50">
                         <datalist id="ruas-list"></datalist>
                     </div>
                     <select id="filter-jenis" class="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent min-w-[150px]">
@@ -351,6 +372,21 @@
     </div>
 
     <script>
+        // Sidebar Toggle Logic
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const toggleBtn = document.getElementById('mobile-sidebar-toggle');
+        const closeBtn = document.getElementById('close-sidebar');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+        if (overlay) overlay.addEventListener('click', toggleSidebar);
+
         window.API_BASE_URL = "{{ url('/') }}";
         const API_URL = (window.API_BASE_URL || '') + '/api/perizinan';
         let allPerizinanData = [];

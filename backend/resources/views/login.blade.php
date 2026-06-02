@@ -85,10 +85,7 @@
                 </div>
 
                 <div>
-                    <div class="flex justify-between items-center mb-1.5">
-                        <label class="block text-sm font-medium text-gray-700">Password</label>
-                        <a href="#" class="text-xs text-accent hover:text-secondary font-medium">Lupa sandi?</a>
-                    </div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
                     <div class="relative">
                         <i class="ph ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
                         <input type="password" id="password" required placeholder="••••••••"

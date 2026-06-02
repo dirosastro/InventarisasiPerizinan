@@ -493,7 +493,7 @@ function renderPerizinanOnMap() {
         };
 
         layers.izin.clearLayers();
-        loadDataToMap();
+        filterData(); // Gunakan filterData alih-alih loadDataToMap agar menghormati filter yang ada di UI/URL
         console.log('Rendering complete. Total features:', allFeatures.length);
     } catch (error) {
         console.error('Critical error during renderPerizinanOnMap:', error);
@@ -1189,6 +1189,89 @@ if (svModal) {
     svModal.addEventListener('click', (e) => {
         if (e.target === svModal) {
             closeSvModal.click();
+        }
+    });
+}
+
+// ─── MOBILE UI LOGIC ───────────────────────────────────────
+const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+const navLinks = document.getElementById('nav-links');
+const openFilterBtn = document.getElementById('open-filter');
+const leftSidebar = document.getElementById('left-sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const closeSidebarBtn = document.getElementById('close-sidebar');
+// detailPanel and closePanelBtn are already declared at top of file
+
+if (mobileMenuToggle) {
+    mobileMenuToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('hidden');
+        navLinks.classList.toggle('flex-col');
+        navLinks.classList.toggle('fixed');
+        navLinks.classList.toggle('top-[60px]');
+        navLinks.classList.toggle('left-0');
+        navLinks.classList.toggle('w-full');
+        navLinks.classList.toggle('bg-[#1E3A5F]'); // Primary color
+        navLinks.classList.toggle('p-6');
+        navLinks.classList.toggle('z-[100]');
+        navLinks.classList.toggle('shadow-2xl');
+    });
+}
+
+const toggleMobileSidebar = (show) => {
+    if (!leftSidebar) return;
+    if (show) {
+        leftSidebar.classList.remove('-translate-x-full');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('hidden');
+    } else {
+        leftSidebar.classList.add('-translate-x-full');
+        if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
+    }
+}
+
+if (openFilterBtn) openFilterBtn.addEventListener('click', () => toggleMobileSidebar(true));
+if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', () => toggleMobileSidebar(false));
+if (sidebarOverlay) sidebarOverlay.addEventListener('click', () => toggleMobileSidebar(false));
+
+// Detail Panel handling for mobile
+// closePanelBtn is already declared at top of file
+if (closePanelBtn) {
+    closePanelBtn.addEventListener('click', () => {
+        detailPanel.classList.add('translate-x-full');
+    });
+}
+
+// Mobile Search Overlay
+const mobileSearchBtn = document.getElementById('mobile-search-btn');
+const mobileSearchOverlay = document.getElementById('mobile-search-overlay');
+const closeMobileSearch = document.getElementById('close-mobile-search');
+const mobileSearchInput = document.getElementById('mobile-search-input');
+
+if (mobileSearchBtn) {
+    mobileSearchBtn.addEventListener('click', () => {
+        mobileSearchOverlay.classList.remove('hidden');
+        if (mobileSearchInput) mobileSearchInput.focus();
+    });
+}
+
+if (closeMobileSearch) {
+    closeMobileSearch.addEventListener('click', () => {
+        mobileSearchOverlay.classList.add('hidden');
+    });
+}
+
+// Link mobile search to main search
+if (mobileSearchInput) {
+    mobileSearchInput.addEventListener('input', (e) => {
+        const mainSearch = document.getElementById('search-input');
+        if (mainSearch) {
+            mainSearch.value = e.target.value;
+            mainSearch.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+
+    mobileSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            mobileSearchOverlay.classList.add('hidden');
         }
     });
 }
