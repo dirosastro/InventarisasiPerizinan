@@ -395,7 +395,8 @@
         
         // Pagination State
         let currentPage = 1;
-        let itemsPerPage = 10;
+        const ITEMS_PER_PAGE_KEY = 'siperjalan_items_per_page';
+        let itemsPerPage = parseInt(localStorage.getItem(ITEMS_PER_PAGE_KEY)) || 10;
         
         async function fetchRuasJalan() {
             try {
@@ -419,7 +420,10 @@
 
                 if (result.success) {
                     allPerizinanData = result.data;
-                    filteredPerizinanData = [...allPerizinanData]; 
+                    filteredPerizinanData = [...allPerizinanData];
+                    // Restore saved items-per-page to the select element
+                    const ippSelect = document.getElementById('items-per-page');
+                    if (ippSelect) ippSelect.value = String(itemsPerPage);
                     currentPage = 1;
                     renderTable();
                 } else {
@@ -683,6 +687,7 @@
         document.getElementById('filter-jenis').addEventListener('change', filterData);
         document.getElementById('items-per-page').addEventListener('change', (e) => {
             itemsPerPage = parseInt(e.target.value);
+            localStorage.setItem(ITEMS_PER_PAGE_KEY, itemsPerPage);
             currentPage = 1;
             renderTable();
         });
