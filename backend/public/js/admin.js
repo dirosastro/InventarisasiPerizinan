@@ -446,7 +446,7 @@ async function fetchAndPopulateData() {
         document.getElementById('tanggal_akhir').value = data.tanggal_akhir || '';
         if (mainSatker) mainSatker.value = data.satker_id || '';
 
-        const pnbpStr = String(data.pnbp || 0).replace(/\D/g, '');
+        const pnbpStr = String(Math.round(parseFloat(data.pnbp || 0)));
         if (pnbpInput) pnbpInput.value = pnbpStr === '' ? '' : pnbpStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         handleTanggalAkhirVisibility();
 

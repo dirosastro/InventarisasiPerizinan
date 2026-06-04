@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div style="width: 400px; height: 400px;">
+        <canvas id="typeChart"></canvas>
+    </div>
+
+    <script>
+        // Mock global variables to simulate dashboard.js
+        let typeChartInstance = null;
+
+        // Paste the exact initTypeChart function here
+        function initTypeChart(data, year) {
+            if (typeChartInstance) typeChartInstance.destroy();
+            const ctx = document.getElementById('typeChart').getContext('2d');
+            
+            const counts = {};
+            const typeMapping = {};
+            data.forEach(item => {
+                const date = new Date(item.tanggal_terbit);
+                if (year === 'all' || date.getFullYear() === year) {
+                    let type = (item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin;
+                    if (type === 'dispensasi') type = 'Dispensasi';
+                    else if (type === 'rekomendasi') type = 'Rekomendasi';
+                    else if (type === 'izin') type = 'Izin';
+                    
+                    counts[type] = (counts[type] || 0) + 1;
+
+                    if (!typeMapping[type]) {
+                        let jenisDisplay = item.jenis_izin;
+                        if (jenisDisplay === 'dispensasi') jenisDisplay = 'Dispensasi';
+                        else if (jenisDisplay === 'rekomendasi') jenisDisplay = 'Rekomendasi';
+                        else if (jenisDisplay === 'izin') jenisDisplay = 'Izin';
+                        
+                        typeMapping[type] = {
+                            jenis: jenisDisplay,
+                            subJenis: (item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : '-'
+                        };
+                    }
+                }
+            });
+
+            const labels = Object.keys(counts);
+            const values = Object.values(counts);
+
+            const colorMap = {
+                'Dispensasi': '#ECC94B',
+                'Izin Penempatan Jaringan Utilitas': '#3182CE',
+                'Akses Jalan Keluar/Masuk': '#48BB78',
+                'Izin': '#3182CE',
+                'Rekomendasi': '#48BB78'
+            };
+            const defaultColors = ['#ED64A6', '#805AD5', '#38B2AC', '#E53E3E', '#DD6B20', '#4A5568'];
+            const backgroundColors = labels.map((label, index) => {
+                return colorMap[label] || defaultColors[index % defaultColors.length];
+            });
+
+            const doughnutPercentagePlugin = {
+                id: 'doughnutPercentagePlugin',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        meta.data.forEach((element, index) => {
+                            const dataValue = dataset.data[index];
+                            if (dataValue === 0) return;
+
+                            const total = dataset.data.reduce((sum, val) => sum + val, 0);
+                            const percentage = total > 0 ? ((dataValue / total) * 100).toFixed(1) + '%' : '0%';
+
+                            const { x, y } = (element.tooltipPosition && typeof element.tooltipPosition === 'function') 
+                                ? element.tooltipPosition() 
+                                : { x: element.x, y: element.y };
+
+                            ctx.save();
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = 'bold 11px Inter, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                            ctx.shadowBlur = 3;
+                            ctx.fillText(percentage, x, y);
+                            ctx.restore();
+                        });
+                    });
+                }
+            };
+
+            typeChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 0
+                    }]
+                },
+                plugins: [doughnutPercentagePlugin],
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        const dataset = data.datasets[0];
+                                        const total = dataset.data.reduce((sum, val) => sum + val, 0);
+                                        const meta = chart.getDatasetMeta(0);
+                                        return data.labels.map((label, i) => {
+                                            const value = dataset.data[i];
+                                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                                            
+                                            let fillStyle = backgroundColors[i];
+                                            let strokeStyle = '#fff';
+                                            let lineWidth = 0;
+                                            if (meta && meta.controller && typeof meta.controller.getStyle === 'function') {
+                                                try {
+                                                    const style = meta.controller.getStyle(i);
+                                                    if (style) {
+                                                        fillStyle = style.backgroundColor || fillStyle;
+                                                        strokeStyle = style.borderColor || strokeStyle;
+                                                        lineWidth = style.borderWidth !== undefined ? style.borderWidth : lineWidth;
+                                                    }
+                                                } catch (e) {}
+                                            }
+                                            
+                                            let hidden = false;
+                                            if (typeof chart.getDataVisibility === 'function') {
+                                                hidden = !chart.getDataVisibility(i);
+                                            } else if (meta && meta.data && meta.data[i]) {
+                                                hidden = meta.data[i].hidden;
+                                            }
+
+                                            return {
+                                                text: `${label} (${value} - ${percentage})`,
+                                                fillStyle: fillStyle,
+                                                strokeStyle: strokeStyle,
+                                                lineWidth: lineWidth,
+                                                hidden: hidden,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label;
+                                    const value = context.raw;
+                                    const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                                    
+                                    const mapping = typeMapping[label] || { jenis: label, subJenis: '-' };
+                                    return [
+                                        ` ${label}: ${value} (${percentage})`,
+                                        ` Jenis: ${mapping.jenis}`,
+                                        ` Sub Jenis: ${mapping.subJenis}`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Run with mock data
+        const mockData = [
+            { jenis_izin: 'izin', sub_jenis: 'Izin Penempatan Jaringan Utilitas', tanggal_terbit: '2026-05-04' },
+            { jenis_izin: 'rekomendasi', sub_jenis: 'Akses Jalan Keluar/Masuk', tanggal_terbit: '2026-05-05' },
+            { jenis_izin: 'dispensasi', sub_jenis: '-', tanggal_terbit: '2026-05-06' }
+        ];
+
+        try {
+            initTypeChart(mockData, 'all');
+            console.log("Success! No exception thrown.");
+        } catch (e) {
+            console.error("Error running initTypeChart:", e);
+            document.body.innerHTML += "<h1 style='color:red;'>Error: " + e.message + "</h1><pre>" + e.stack + "</pre>";
+        }
+    </script>
+</body>
+</html>

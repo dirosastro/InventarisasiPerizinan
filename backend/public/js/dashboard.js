@@ -136,13 +136,6 @@ function updateRecentPermits(data) {
             <td class="px-5 py-3 text-xs text-gray-600">${item.sub_jenis || item.jenis_izin}</td>
             <td class="px-5 py-3 text-xs text-gray-600">${tgl}</td>
             <td class="px-5 py-3 text-center">${statusBadge}</td>
-            <td class="px-5 py-3 text-center">
-                ${item.status === 'hampir_habis' ? `
-                    <a href="https://wa.me/?text=Halo%20${encodeURIComponent(item.pemohon)},%20izin%20${encodeURIComponent(item.sub_jenis)}%20Anda%20akan%20segera%20berakhir." target="_blank" class="inline-flex items-center justify-center w-7 h-7 rounded bg-[#25D366] text-white hover:bg-[#128C7E] transition-colors shadow-sm">
-                        <i class="ph ph-whatsapp-logo text-lg"></i>
-                    </a>
-                ` : '<span class="text-gray-300">-</span>'}
-            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -151,35 +144,86 @@ function updateRecentPermits(data) {
 function initPnbpChart(data, year) {
     if (pnbpChartInstance) pnbpChartInstance.destroy();
     const ctx = document.getElementById('pnbpChart').getContext('2d');
-    
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-    const pnbpByMonth = new Array(12).fill(0);
-    
-    data.forEach(item => {
-        const date = new Date(item.tanggal_terbit);
-        if (year === 'all' || date.getFullYear() === year) {
-            pnbpByMonth[date.getMonth()] += (parseFloat(item.pnbp) || 0) / 1000000;
-        }
-    });
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+
+    let labels = [];
+    let pnbpValues = [];
+
+    if (year === 'all') {
+        // Kumpulkan semua tahun yang ada dalam data
+        const yearSet = new Set(data.map(item => new Date(item.tanggal_terbit).getFullYear()));
+        const sortedYears = [...yearSet].sort((a, b) => a - b);
+
+        // Buat map: 'YYYY-MM' => total PNBP
+        const pnbpByYearMonth = {};
+        data.forEach(item => {
+            const date = new Date(item.tanggal_terbit);
+            const key = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
+            pnbpByYearMonth[key] = (pnbpByYearMonth[key] || 0) + (parseFloat(item.pnbp) || 0) / 1000000;
+        });
+
+        // Buat label kronologis dari tahun minimum ke maksimum
+        sortedYears.forEach(yr => {
+            for (let m = 0; m < 12; m++) {
+                const key = `${yr}-${String(m).padStart(2, '0')}`;
+                labels.push(`${monthNames[m]} ${yr}`);
+                pnbpValues.push(pnbpByYearMonth[key] || 0);
+            }
+        });
+    } else {
+        // Filter per tahun tertentu: tampilkan 12 bulan saja
+        labels = monthNames;
+        pnbpValues = new Array(12).fill(0);
+        data.forEach(item => {
+            const date = new Date(item.tanggal_terbit);
+            if (date.getFullYear() === year) {
+                pnbpValues[date.getMonth()] += (parseFloat(item.pnbp) || 0) / 1000000;
+            }
+        });
+    }
 
     pnbpChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: months,
+            labels: labels,
             datasets: [{
                 label: 'PNBP (Juta Rp)',
-                data: pnbpByMonth,
+                data: pnbpValues,
                 borderColor: '#3182CE',
                 backgroundColor: 'rgba(49, 130, 206, 0.1)',
                 borderWidth: 3,
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' Jt' } } }
+            scales: {
+                x: {
+                    ticks: {
+                        maxRotation: year === 'all' ? 45 : 0,
+                        minRotation: year === 'all' ? 45 : 0,
+                        font: { size: 11 }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: v => 'Rp ' + v + ' Jt' }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ` PNBP: Rp ${context.parsed.y.toFixed(2)} Juta`;
+                        }
+                    }
+                }
+            }
         }
     });
 }
@@ -187,18 +231,77 @@ function initPnbpChart(data, year) {
 function initTypeChart(data, year) {
     if (typeChartInstance) typeChartInstance.destroy();
     const ctx = document.getElementById('typeChart').getContext('2d');
-    
+
+    // Kelompokkan berdasarkan jenis_izin (sesuai formulir: izin, rekomendasi, dispensasi)
+    // dan kumpulkan daftar sub_jenis unik per grup untuk tooltip
     const counts = {};
+    const subJenisPerGroup = {}; // { 'Izin': Set(['Izin Penempatan...', ...]), ... }
+
+    const jenisLabelMap = {
+        'izin': 'Izin',
+        'rekomendasi': 'Rekomendasi',
+        'dispensasi': 'Dispensasi'
+    };
+
     data.forEach(item => {
         const date = new Date(item.tanggal_terbit);
         if (year === 'all' || date.getFullYear() === year) {
-            const type = item.sub_jenis || item.jenis_izin;
-            counts[type] = (counts[type] || 0) + 1;
+            // Kelompokkan berdasarkan jenis_izin utama dari formulir
+            const jenisKey = item.jenis_izin ? item.jenis_izin.toLowerCase() : 'izin';
+            const groupLabel = jenisLabelMap[jenisKey] || jenisKey;
+
+            counts[groupLabel] = (counts[groupLabel] || 0) + 1;
+
+            // Kumpulkan sub_jenis unik dalam grup ini
+            if (!subJenisPerGroup[groupLabel]) subJenisPerGroup[groupLabel] = new Set();
+            const sj = (item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : null;
+            if (sj) subJenisPerGroup[groupLabel].add(sj);
         }
     });
 
     const labels = Object.keys(counts);
     const values = Object.values(counts);
+
+    const colorMap = {
+        'Izin': '#3182CE',
+        'Rekomendasi': '#48BB78',
+        'Dispensasi': '#ECC94B'
+    };
+    const defaultColors = ['#ED64A6', '#805AD5', '#38B2AC', '#E53E3E', '#DD6B20', '#4A5568'];
+    const backgroundColors = labels.map((label, index) => {
+        return colorMap[label] || defaultColors[index % defaultColors.length];
+    });
+
+    const doughnutPercentagePlugin = {
+        id: 'doughnutPercentagePlugin',
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            chart.data.datasets.forEach((dataset, i) => {
+                const meta = chart.getDatasetMeta(i);
+                meta.data.forEach((element, index) => {
+                    const dataValue = dataset.data[index];
+                    if (dataValue === 0) return;
+
+                    const total = dataset.data.reduce((sum, val) => sum + val, 0);
+                    const percentage = total > 0 ? ((dataValue / total) * 100).toFixed(1) + '%' : '0%';
+
+                    const { x, y } = (element.tooltipPosition && typeof element.tooltipPosition === 'function')
+                        ? element.tooltipPosition()
+                        : { x: element.x, y: element.y };
+
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 11px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 3;
+                    ctx.fillText(percentage, x, y);
+                    ctx.restore();
+                });
+            });
+        }
+    };
 
     typeChartInstance = new Chart(ctx, {
         type: 'doughnut',
@@ -206,15 +309,89 @@ function initTypeChart(data, year) {
             labels: labels,
             datasets: [{
                 data: values,
-                backgroundColor: ['#3182CE', '#48BB78', '#ECC94B', '#ED64A6', '#805AD5', '#38B2AC'],
+                backgroundColor: backgroundColors,
                 borderWidth: 0
             }]
         },
+        plugins: [doughnutPercentagePlugin],
         options: {
             responsive: true,
             maintainAspectRatio: false,
             cutout: '70%',
-            plugins: { legend: { position: 'bottom' } }
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                const dataset = data.datasets[0];
+                                const total = dataset.data.reduce((sum, val) => sum + val, 0);
+                                const meta = chart.getDatasetMeta(0);
+                                return data.labels.map((label, i) => {
+                                    const value = dataset.data[i];
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+
+                                    let fillStyle = backgroundColors[i];
+                                    let strokeStyle = '#fff';
+                                    let lineWidth = 0;
+                                    if (meta && meta.controller && typeof meta.controller.getStyle === 'function') {
+                                        try {
+                                            const style = meta.controller.getStyle(i);
+                                            if (style) {
+                                                fillStyle = style.backgroundColor || fillStyle;
+                                                strokeStyle = style.borderColor || strokeStyle;
+                                                lineWidth = style.borderWidth !== undefined ? style.borderWidth : lineWidth;
+                                            }
+                                        } catch (e) {}
+                                    }
+
+                                    let hidden = false;
+                                    if (typeof chart.getDataVisibility === 'function') {
+                                        hidden = !chart.getDataVisibility(i);
+                                    } else if (meta && meta.data && meta.data[i]) {
+                                        hidden = meta.data[i].hidden;
+                                    }
+
+                                    return {
+                                        text: `${label} (${value} - ${percentage})`,
+                                        fillStyle: fillStyle,
+                                        strokeStyle: strokeStyle,
+                                        lineWidth: lineWidth,
+                                        hidden: hidden,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label;
+                            const value = context.raw;
+                            const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+
+                            const lines = [
+                                ` Jenis Izin : ${label}`,
+                                ` Jumlah     : ${value} izin (${percentage})`
+                            ];
+
+                            // Tampilkan daftar sub jenis yang ada dalam grup ini
+                            const subJenisSet = subJenisPerGroup[label];
+                            if (subJenisSet && subJenisSet.size > 0) {
+                                lines.push(` Sub Jenis  :`);
+                                subJenisSet.forEach(sj => lines.push(`   • ${sj}`));
+                            }
+
+                            return lines;
+                        }
+                    }
+                }
+            }
         }
     });
 }

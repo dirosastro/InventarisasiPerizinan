@@ -534,13 +534,7 @@
                         
                         lokasiHtml += `
                             <div class="flex items-center gap-1">
-                                ${svUrl ? `
-                                <a href="${svUrl}" target="_blank" class="bg-amber-500 text-white px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5 hover:bg-amber-600 transition-colors shadow-sm" title="Buka Street View">
-                                    <i class="ph-fill ph-person-simple-walk"></i> ${l.nama_ruas_jalan}
-                                </a>` : `
-                                <span class="bg-gray-100 text-gray-400 px-2.5 py-1 rounded-md text-[11px] font-semibold inline-flex items-center gap-1.5">
-                                    <i class="ph-fill ph-warning"></i> ${l.nama_ruas_jalan}
-                                </a>`}
+                                <span class="text-gray-700 text-xs font-medium">${l.nama_ruas_jalan}</span>
                                 <a href="{{ url('/peta') }}?id=${item.id}&road=${encodeURIComponent(l.nama_ruas_jalan)}" class="bg-blue-50 border border-blue-100 text-blue-600 p-1 rounded-md hover:bg-blue-100 transition-colors" title="Lihat di Peta">
                                     <i class="ph-fill ph-map-pin text-sm"></i>
                                 </a>
