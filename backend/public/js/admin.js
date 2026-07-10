@@ -66,7 +66,20 @@ function handleTanggalAkhirVisibility() {
         if (input) input.setAttribute('required', 'required');
     }
     handlePnbpVisibility();
+    handleDimensiVisibility();
     autoSelectIcon();
+}
+
+function handleDimensiVisibility() {
+    const containerPanjang = document.getElementById('container_panjang');
+    const inputPanjang = document.getElementById('panjang');
+
+    if (subJenis.value === 'Akses Jalan Keluar/Masuk') {
+        if (containerPanjang) containerPanjang.classList.add('hidden');
+        if (inputPanjang) inputPanjang.value = '';
+    } else {
+        if (containerPanjang) containerPanjang.classList.remove('hidden');
+    }
 }
 
 function autoSelectIcon() {
@@ -373,6 +386,9 @@ if (form) {
 
         const pnbpRaw = document.getElementById('pnbp').value.replace(/\./g, '') || 0;
         formData.append('pnbp', pnbpRaw);
+        
+        formData.append('panjang', document.getElementById('panjang').value || '');
+        formData.append('lebar', document.getElementById('lebar').value || '');
 
         formData.append('satker_id', mainSatker.value);
         formData.append('icon', iconInput.value || '');
@@ -390,9 +406,13 @@ if (form) {
         const url = editId ? `${API_BASE}/api/perizinan/${editId}` : `${API_BASE}/api/perizinan`;
 
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
             const response = await fetch(url, {
                 method: 'POST',
-                headers: { 'Accept': 'application/json' },
+                headers: { 
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
                 body: formData
             });
             const result = await response.json();
@@ -448,6 +468,10 @@ async function fetchAndPopulateData() {
 
         const pnbpStr = String(Math.round(parseFloat(data.pnbp || 0)));
         if (pnbpInput) pnbpInput.value = pnbpStr === '' ? '' : pnbpStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        
+        document.getElementById('panjang').value = data.panjang || '';
+        document.getElementById('lebar').value = data.lebar || '';
+
         handleTanggalAkhirVisibility();
 
         if (data.icon) {
@@ -638,6 +662,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         xhr.open('POST', (window.API_BASE_URL || '') + '/api/perizinan/upload-temp');
         xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
         xhr.send(formData);
     }
 

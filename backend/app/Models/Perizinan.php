@@ -23,7 +23,9 @@ class Perizinan extends Model
         'pnbp',
         'tanggal_terbit',
         'tanggal_akhir',
-        'status'
+        'status',
+        'panjang',
+        'lebar'
     ];
 
     public function lokasi()

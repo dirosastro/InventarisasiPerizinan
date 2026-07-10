@@ -2,11 +2,7 @@
 <html lang="id">
 
 <head>
-    <script>
-        if (localStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = "{{ route('login') }}";
-        }
-    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
@@ -69,9 +65,8 @@
             </button>
             <script>
                 function logout() {
-                    localStorage.removeItem('isLoggedIn');
-                    localStorage.removeItem('userRole');
-                    window.location.href = "{{ route('home') }}";
+                    localStorage.clear();
+                    window.location.href = "{{ route('logout') }}";
                 }
 
                 document.addEventListener('DOMContentLoaded', () => {

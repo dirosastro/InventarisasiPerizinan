@@ -1,3 +1,6 @@
+// ─── AUTH STATE ──────────────────────────────────────────────
+const isLoggedIn = window.IS_LOGGED_IN || false;
+
 // ─── BASE MAPS ──────────────────────────────────────────────
 const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
@@ -354,6 +357,8 @@ function renderPerizinanOnMap() {
                             panjang_dimanfaatkan: turf.length(feat, { units: 'kilometers' }).toFixed(2),
                             sta_awal: item.lokasi && item.lokasi.length > 0 ? item.lokasi[0].sta_awal : '-',
                             sta_akhir: item.lokasi && item.lokasi.length > 0 ? item.lokasi[0].sta_akhir : '-',
+                            panjang: item.panjang || null,
+                            lebar: item.lebar || null,
                             dokumen: item.dokumen || [],
                             riwayat: item.riwayat || []
                         };
@@ -432,6 +437,8 @@ function renderPerizinanOnMap() {
                             panjang_dimanfaatkan: 0,
                             sta_awal: loc.sta_awal || '-',
                             sta_akhir: loc.sta_akhir || '-',
+                            panjang: item.panjang || null,
+                            lebar: item.lebar || null,
                             dokumen: item.dokumen || [],
                             riwayat: item.riwayat || []
                         };
@@ -502,21 +509,9 @@ function renderPerizinanOnMap() {
                             type: 'Feature',
                             geometry: { type: 'Point', coordinates: [coords[1], coords[0]] },
                             properties: {
-                                id: item.id,
-                                type: 'izin',
-                                no_izin: item.nomor_izin,
-                                pemohon: item.pemohon,
-                                raw_jenis_izin: item.jenis_izin,
-                                jenis_izin: (item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin,
-                                satker_id: item.satker_id,
-                                ruas_jalan: loc.nama_ruas_jalan,
-                                status: item.status,
-                                icon: item.icon,
-                                masa_berlaku_awal: item.tanggal_terbit,
-                                masa_berlaku_akhir: item.tanggal_akhir,
-                                pnbp: item.pnbp || 0,
-                                dokumen: item.dokumen || [],
-                                riwayat: item.riwayat || []
+                                ...commonProps,
+                                is_utility_line: true,
+                                label: 'Pemanfaatan'
                             }
                         });
                     }
@@ -610,6 +605,17 @@ fetch((window.API_BASE_URL || '') + '/data/Peta%20Jalan%20Nasional.geojson')
                                     <span class="font-semibold">${ppk}</span>
                                 </div>
                             </div>
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <p class="text-[10px] text-gray-500 mb-2">Ajukan Izin lewat aplikasi berikut:</p>
+                                <div class="flex gap-2">
+                                <a href="https://oksip.pu.go.id/" target="_blank" rel="noopener noreferrer" class="bg-blue-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 hover:bg-blue-700 transition-colors no-underline" style="color: white; text-decoration: none;">
+                                    <i class="ph ph-arrow-square-out"></i> OKSIP
+                                </a>
+                                <a href="https://oss.go.id/id" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 hover:bg-emerald-700 transition-colors no-underline" style="color: white; text-decoration: none;">
+                                    <i class="ph ph-arrow-square-out"></i> OSS
+                                </a>
+                                </div>
+                            </div>
                         </div>
                     `);
                 }
@@ -643,6 +649,16 @@ fetch((window.API_BASE_URL || '') + '/data/Peta%20Jalan%20Nasional.geojson')
                                         <span class="font-semibold">${ppk}</span>
                                     </div>
                                 </div>
+                                <div class="mt-3 pt-3 border-t border-gray-100">
+                                    <p class="text-[10px] text-gray-500 mb-2">Ajukan Izin lewat aplikasi berikut:</p>
+                                    <div class="flex gap-2">
+                                    <a href="https://oksip.pu.go.id/" target="_blank" rel="noopener noreferrer" class="bg-blue-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 hover:bg-blue-700 transition-colors no-underline" style="color: white; text-decoration: none;">
+                                        <i class="ph ph-arrow-square-out"></i> OKSIP
+                                    </a>
+                                    <a href="https://oss.go.id/id" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 hover:bg-emerald-700 transition-colors no-underline" style="color: white; text-decoration: none;">
+                                        <i class="ph ph-arrow-square-out"></i> OSS
+                                    </a>
+                                </div>
                             </div>
                         `);
                     }
@@ -668,9 +684,11 @@ function loadDataToMap(data = geojsonData) {
                     });
                 }
 
-                // Click event for marker to open detail panel
+                // Click event for marker to open detail panel (only for logged-in users)
                 marker.on('click', () => {
-                    openDetailPanel(feature.properties);
+                    if (isLoggedIn) {
+                        openDetailPanel(feature.properties);
+                    }
                 });
 
                 return marker;
@@ -712,7 +730,9 @@ function loadDataToMap(data = geojsonData) {
                             className: 'custom-popup'
                         });
                         marker.on('click', () => {
-                            openDetailPanel(feature.properties);
+                            if (isLoggedIn) {
+                                openDetailPanel(feature.properties);
+                            }
                         });
                         layers.izin.addLayer(marker);
 
@@ -726,7 +746,9 @@ function loadDataToMap(data = geojsonData) {
                             className: 'custom-popup'
                         });
                         layer.on('click', () => {
-                            openDetailPanel(feature.properties);
+                            if (isLoggedIn) {
+                                openDetailPanel(feature.properties);
+                            }
                         });
                     }
                 }
@@ -740,6 +762,28 @@ function loadDataToMap(data = geojsonData) {
 // Create Popup Content
 function createPopupContent(props, latlng) {
     const svUrl = latlng ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}` : '#';
+
+    // Non-logged-in users: hanya tampilkan info dasar tanpa detail sensitif
+    if (!isLoggedIn) {
+        return `
+            <div class="title">${props.jenis_izin}</div>
+            <div class="subtitle" style="color: ${getStatusColor(props.status)}">${getStatusLabel(props.status)}</div>
+            
+            <div class="info-row">
+                <span class="info-label">Ruas:</span>
+                <span class="info-value">${props.ruas_jalan || '-'}</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-gray-100">
+                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px;">
+                    <i class="ph-fill ph-lock" style="color: #D97706; font-size: 16px;"></i>
+                    <div>
+                        <div style="font-size: 11px; font-weight: 600; color: #92400E;">Login untuk melihat detail</div>
+                        <a href="${window.API_BASE_URL}/login" style="font-size: 10px; color: #2563EB; text-decoration: underline; font-weight: 500;">Masuk ke akun Anda →</a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     return `
         <div class="title">${props.pemohon}</div>
@@ -782,7 +826,7 @@ function createPopupContent(props, latlng) {
 
 // Global function to open panel from popup button
 window.openDetailPanelById = function (id) {
-    if (!geojsonData) return;
+    if (!isLoggedIn || !geojsonData) return;
     const feature = geojsonData.features.find(f => f.properties.id === id);
     if (feature) {
         openDetailPanel(feature.properties);
@@ -814,9 +858,37 @@ function openDetailPanel(props) {
     document.getElementById('teknis-ruas').textContent = props.ruas_jalan;
     document.getElementById('teknis-sta-awal').textContent = props.sta_awal || '-';
     document.getElementById('teknis-sta-akhir').textContent = props.sta_akhir || '-';
-    const panjangEl = document.getElementById('teknis-panjang');
-    if (panjangEl) {
-        panjangEl.textContent = props.panjang_dimanfaatkan ? props.panjang_dimanfaatkan + ' Km' : '-';
+    
+    // Area Pemanfaatan Logic
+    const containerArea = document.getElementById('container-area-pemanfaatan');
+    if (containerArea) {
+        const rowPanjang = document.getElementById('row-panjang');
+        const panjangEl = document.getElementById('teknis-panjang');
+        const lebarEl = document.getElementById('teknis-lebar');
+        const totalAreaEl = document.getElementById('teknis-total-area');
+
+        let p = parseFloat(props.panjang) || 0;
+        let l = parseFloat(props.lebar) || 0;
+
+        if (props.jenis_izin === 'Akses Jalan Keluar/Masuk') {
+            if (rowPanjang) rowPanjang.style.display = 'none';
+            if (lebarEl) lebarEl.textContent = props.lebar ? `${props.lebar} Meter` : '-';
+            if (totalAreaEl) totalAreaEl.textContent = '-';
+        } else {
+            if (rowPanjang) rowPanjang.style.display = 'flex';
+            if (panjangEl) panjangEl.textContent = props.panjang ? `${props.panjang} Meter` : '-';
+            if (lebarEl) lebarEl.textContent = props.lebar ? `${props.lebar} Meter` : '-';
+            if (totalAreaEl) {
+                if (props.panjang && props.lebar) {
+                    let total = p * l;
+                    // Format number to maximum 2 decimal places
+                    total = Math.round(total * 100) / 100;
+                    totalAreaEl.textContent = `${total} m²`;
+                } else {
+                    totalAreaEl.textContent = '-';
+                }
+            }
+        }
     }
 
     // Tab Dokumen
@@ -1351,8 +1423,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function focusOnPermit(id, roadName = null) {
     const feature = geojsonData.features.find(f => String(f.properties.id) === String(id));
     if (feature) {
-        // Buka panel detail
-        openDetailPanel(feature.properties);
+        // Buka panel detail (hanya untuk user yang sudah login)
+        if (isLoggedIn) {
+            openDetailPanel(feature.properties);
+        }
 
         let foundLayer = null;
         let bestScore = -1;

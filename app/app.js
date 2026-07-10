@@ -1,3 +1,6 @@
+// ─── AUTH STATE ──────────────────────────────────────────────
+const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
 // ─── BASE MAPS ──────────────────────────────────────────────
 const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
@@ -631,9 +634,11 @@ function loadDataToMap(data = geojsonData) {
                     });
                 }
 
-                // Click event for marker to open detail panel
+                // Click event for marker to open detail panel (only for logged-in users)
                 marker.on('click', () => {
-                    openDetailPanel(feature.properties);
+                    if (isLoggedIn) {
+                        openDetailPanel(feature.properties);
+                    }
                 });
 
                 return marker;
@@ -674,7 +679,9 @@ function loadDataToMap(data = geojsonData) {
                             className: 'custom-popup'
                         });
                         marker.on('click', () => {
-                            openDetailPanel(feature.properties);
+                            if (isLoggedIn) {
+                                openDetailPanel(feature.properties);
+                            }
                         });
                         layers.izin.addLayer(marker);
 
@@ -688,7 +695,9 @@ function loadDataToMap(data = geojsonData) {
                             className: 'custom-popup'
                         });
                         layer.on('click', () => {
-                            openDetailPanel(feature.properties);
+                            if (isLoggedIn) {
+                                openDetailPanel(feature.properties);
+                            }
                         });
                     }
                 }
@@ -702,6 +711,28 @@ function loadDataToMap(data = geojsonData) {
 // Create Popup Content
 function createPopupContent(props, latlng) {
     const svUrl = latlng ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}` : '#';
+
+    // Non-logged-in users: hanya tampilkan info dasar tanpa detail sensitif
+    if (!isLoggedIn) {
+        return `
+            <div class="title">${props.jenis_izin}</div>
+            <div class="subtitle" style="color: ${getStatusColor(props.status)}">${getStatusLabel(props.status)}</div>
+            
+            <div class="info-row">
+                <span class="info-label">Ruas:</span>
+                <span class="info-value">${props.ruas_jalan || '-'}</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-gray-100">
+                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px;">
+                    <i class="ph-fill ph-lock" style="color: #D97706; font-size: 16px;"></i>
+                    <div>
+                        <div style="font-size: 11px; font-weight: 600; color: #92400E;">Login untuk melihat detail</div>
+                        <a href="login.html" style="font-size: 10px; color: #2563EB; text-decoration: underline; font-weight: 500;">Masuk ke akun Anda →</a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
     
     return `
         <div class="title">${props.pemohon}</div>
@@ -744,7 +775,7 @@ function createPopupContent(props, latlng) {
 
 // Global function to open panel from popup button
 window.openDetailPanelById = function (id) {
-    if (!geojsonData) return;
+    if (!isLoggedIn || !geojsonData) return;
     const feature = geojsonData.features.find(f => f.properties.id === id);
     if (feature) {
         openDetailPanel(feature.properties);
@@ -1196,8 +1227,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function focusOnPermit(id) {
     const feature = geojsonData.features.find(f => String(f.properties.id) === String(id));
     if (feature) {
-        // Buka panel detail
-        openDetailPanel(feature.properties);
+        // Buka panel detail (hanya untuk user yang sudah login)
+        if (isLoggedIn) {
+            openDetailPanel(feature.properties);
+        }
         
         // Cari layer di peta
         layers.izin.eachLayer(layer => {

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <title>Daftar Perizinan | Siperjalan BPJN NTB</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -103,27 +104,18 @@
 
     <script>
         function logout() {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('userRole');
-            window.location.href = "{{ route('home') }}";
+            localStorage.clear();
+            window.location.href = "{{ route('logout') }}";
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const userRole = localStorage.getItem('userRole');
+            @if(auth()->check() && auth()->user()->role === 'superadmin')
             const adminMenu = document.getElementById('admin-menu');
-
-            if (!isLoggedIn) {
-                window.location.href = "{{ route('login') }}";
-                return;
-            }
-
-            if (isLoggedIn && userRole === 'superadmin' && adminMenu) {
-                adminMenu.classList.remove('hidden');
-            }
+            if (adminMenu) adminMenu.classList.remove('hidden');
+            @endif
 
             // Tampilkan nama user yang login
-            const userName = localStorage.getItem('userName') || 'Admin BPJN';
+            const userName = '{{ auth()->user()->name ?? "Admin BPJN" }}';
             const nameElements = document.querySelectorAll('.user-name-display');
             nameElements.forEach(el => el.innerText = userName);
         });
@@ -749,7 +741,7 @@
             try {
                 const response = await fetch(WA_BOT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                     body: JSON.stringify({ number: pendingNotifItem.no_hp, message: buildPesanNotif(pendingNotifItem) })
                 });
                 toast.remove();
@@ -766,7 +758,7 @@
         document.getElementById('confirm-delete').addEventListener('click', async () => {
             if (!permitIdToDelete) return;
             try {
-                const response = await fetch(`${API_URL}/${permitIdToDelete}`, { method: 'DELETE', headers: { 'Accept': 'application/json' } });
+                const response = await fetch(`${API_URL}/${permitIdToDelete}`, { method: 'DELETE', headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
                 if (response.ok) { document.getElementById('delete-modal').classList.add('hidden'); fetchPerizinan(); }
             } catch (error) { console.error(error); }
             finally { permitIdToDelete = null; }

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <title>Login - Siperjalan</title>
 
@@ -140,9 +141,14 @@
             errorMsg.classList.add('hidden');
 
             try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                 const response = await fetch("{{ url('api/login') }}", {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     body: JSON.stringify({ username: user, password: pass })
                 });
 
@@ -166,10 +172,6 @@
                 btn.disabled = false;
             }
         });
-
-        if (localStorage.getItem('isLoggedIn') === 'true') {
-            window.location.href = "{{ route('dashboard') }}";
-        }
     </script>
 </body>
 

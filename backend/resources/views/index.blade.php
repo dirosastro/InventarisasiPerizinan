@@ -108,8 +108,10 @@
 
             <div class="hidden lg:flex items-center space-x-8 text-sm font-semibold text-bps-navy">
                 <a href="{{ route('home') }}" class="text-bps-blue">Beranda</a>
+                <a href="{{ route('dashboard') }}" id="nav-dashboard-link" class="hidden hover:text-bps-blue transition-colors">Dashboard</a>
                 <a href="{{ route('peta') }}" class="hover:text-bps-blue transition-colors">Peta Pemanfaatan</a>
                 <a href="{{ route('perizinan_view') }}" id="nav-perizinan-link" class="hidden hover:text-bps-blue transition-colors">Data Perizinan</a>
+                <a href="{{ route('dasar-hukum') }}" class="hover:text-bps-blue transition-colors">Dasar Hukum</a>
                 <a href="{{ route('login') }}" id="nav-login-btn"
                     class="bg-bps-blue text-white px-6 py-2.5 rounded-md hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm">
                     <i class="ph ph-user-circle text-lg"></i>
@@ -126,8 +128,10 @@
         <!-- MOBILE MENU CONTENT -->
         <div id="mobile-menu" class="hidden lg:hidden bg-white border-t border-gray-100 flex flex-col p-6 space-y-4 font-semibold text-bps-navy animate-in">
             <a href="{{ route('home') }}" class="text-bps-blue py-2 border-b border-gray-50">Beranda</a>
+            <a href="{{ route('dashboard') }}" id="mobile-nav-dashboard-link" class="hidden hover:text-bps-blue transition-colors py-2 border-b border-gray-50">Dashboard</a>
             <a href="{{ route('peta') }}" class="hover:text-bps-blue transition-colors py-2 border-b border-gray-50">Peta Pemanfaatan</a>
             <a href="{{ route('perizinan_view') }}" id="mobile-nav-perizinan-link" class="hidden hover:text-bps-blue transition-colors py-2 border-b border-gray-50">Data Perizinan</a>
+            <a href="{{ route('dasar-hukum') }}" class="hover:text-bps-blue transition-colors py-2 border-b border-gray-50">Dasar Hukum</a>
             <a href="{{ route('login') }}" id="mobile-nav-login-btn"
                 class="bg-bps-blue text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-sm">
                 <i class="ph ph-user-circle text-lg"></i>
@@ -145,11 +149,10 @@
         <div class="max-w-7xl mx-auto px-6 w-full relative z-10 text-center">
             <div class="max-w-3xl mx-auto">
                 <h1 class="text-white text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight mb-6 animate-in">
-                    Data Perizinan pemanfaatan bagian - bagian jalan, Terintegrasi dan Akurat
+                    Dashboard Monitoring Perizinan Pemanfaatan Bagian - Bagian Jalan Nasional
                 </h1>
                 <p class="text-blue-100 text-lg lg:text-xl mb-8 opacity-90 leading-relaxed animate-in delay-1">
-                    Siperjalan menyediakan informasi komprehensif mengenai perizinan infrastruktur di sepanjang jalan
-                    nasional Provinsi Nusa Tenggara Barat.
+                    Menyajikan informasi dan pemantauan perizinan pemanfaatan bagian-bagian jalan nasional di Provinsi Nusa Tenggara Barat secara terintegrasi, akurat, dan real-time guna mendukung pelayanan yang transparan, efektif, serta pengambilan keputusan yang tepat di lingkungan BPJN NTB.
                 </p>
 
                 <!-- Search Bar Style BPS -->
@@ -226,40 +229,44 @@
     </section>
 
     <script>
-        // Check Login Status
+        // Auth state from server-side session
         document.addEventListener('DOMContentLoaded', () => {
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            
             // Handle both desktop and mobile nav
             const perizinanLinks = [
                 document.getElementById('nav-perizinan-link'),
                 document.getElementById('mobile-nav-perizinan-link')
+            ];
+            const dashboardLinks = [
+                document.getElementById('nav-dashboard-link'),
+                document.getElementById('mobile-nav-dashboard-link')
             ];
             const navBtns = [
                 document.getElementById('nav-login-btn'),
                 document.getElementById('mobile-nav-login-btn')
             ];
             
-            if (isLoggedIn) {
-                navBtns.forEach(btn => {
-                    if (!btn) return;
-                    btn.innerHTML = '<i class="ph ph-sign-out text-lg"></i><span>Keluar Admin</span>';
-                    btn.className = 'bg-red-600 text-white px-6 py-2.5 rounded-md hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-sm w-full lg:w-auto';
-                    btn.href = '#';
-                    btn.onclick = (e) => {
-                        e.preventDefault();
-                        localStorage.removeItem('isLoggedIn');
-                        window.location.reload();
-                    };
-                });
-                perizinanLinks.forEach(link => {
-                    if (link) link.classList.remove('hidden');
-                });
-            } else {
-                perizinanLinks.forEach(link => {
-                    if (link) link.classList.add('hidden');
-                });
-            }
+            @if(auth()->check())
+            navBtns.forEach(btn => {
+                if (!btn) return;
+                btn.innerHTML = '<i class="ph ph-sign-out text-lg"></i><span>Keluar Admin</span>';
+                btn.className = 'bg-red-600 text-white px-6 py-2.5 rounded-md hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-sm w-full lg:w-auto';
+                btn.href = '{{ route("logout") }}';
+                btn.onclick = null;
+            });
+            perizinanLinks.forEach(link => {
+                if (link) link.classList.remove('hidden');
+            });
+            dashboardLinks.forEach(link => {
+                if (link) link.classList.remove('hidden');
+            });
+            @else
+            perizinanLinks.forEach(link => {
+                if (link) link.classList.add('hidden');
+            });
+            dashboardLinks.forEach(link => {
+                if (link) link.classList.add('hidden');
+            });
+            @endif
 
             // Mobile Menu Toggle Logic
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');

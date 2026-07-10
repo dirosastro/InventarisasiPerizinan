@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -105,6 +106,9 @@ class UserController extends Controller
                 'message' => 'Username atau password salah'
             ], 401);
         }
+
+        // Login user secara server-side (tanpa remember token karena kolomnya tidak ada)
+        Auth::login($user, false);
 
         return response()->json([
             'success' => true,

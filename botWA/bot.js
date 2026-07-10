@@ -154,8 +154,8 @@ app.get('/status', (req, res) => {
 // ─── Jalankan bot & server Express ───────────────────────────────────────────
 startBot();
 
-app.listen(port, () => {
-    console.log(`🚀  Bot API siap di http://localhost:${port}`);
+app.listen(port, '127.0.0.1', () => {
+    console.log(`🚀  Bot API siap di http://127.0.0.1:${port}`);
     console.log(`   POST /send-message  → kirim pesan`);
     console.log(`   GET  /status        → cek status koneksi\n`);
 });

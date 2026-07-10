@@ -1,5 +1,0 @@
-2026/05/29-21:26:30.286 10efcd Creating DB /Applications/XAMPP/xamppfiles/htdocs/InventarisasiPerizinan/botWA/sessions/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb since it was missing.
-2026/05/29-21:26:30.289 10efcd Reusing MANIFEST /Applications/XAMPP/xamppfiles/htdocs/InventarisasiPerizinan/botWA/sessions/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2026/05/29-22:41:20.636 10efd1 Level-0 table #5: started
-2026/05/29-22:41:21.093 10efd1 Level-0 table #5: 1358934 bytes OK
-2026/05/29-22:41:21.122 10efd1 Delete type=0 #3

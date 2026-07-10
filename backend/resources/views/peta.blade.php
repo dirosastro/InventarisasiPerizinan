@@ -136,9 +136,9 @@
             <nav class="hidden md:flex items-center gap-1 text-sm font-medium" id="nav-links">
                 <a href="{{ route('home') }}" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Beranda</a>
                 <a href="{{ route('dashboard') }}" id="nav-dashboard" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">Dashboard</a>
-                <a href="{{ route('peta') }}" class="px-3 py-2 rounded-md bg-secondary text-white transition-colors">Peta</a>
-                <a href="{{ route('perizinan_view') }}" id="nav-perizinan" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors text-nowrap">Data Izin</a>
-                <a href="{{ route('users') }}" id="admin-nav" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors">User</a>
+                <a href="{{ route('peta') }}" class="px-3 py-2 rounded-md bg-secondary text-white transition-colors">Peta Pemanfaatan</a>
+                <a href="{{ route('perizinan_view') }}" id="nav-perizinan" class="hidden px-3 py-2 rounded-md hover:bg-secondary transition-colors text-nowrap">Data Perizinan</a>
+                <a href="{{ route('dasar-hukum') }}" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Dasar Hukum</a>
             </nav>
 
             <div class="relative hidden sm:block">
@@ -158,47 +158,35 @@
 
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
-                    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                    const userRole = localStorage.getItem('userRole');
                     const authSection = document.getElementById('auth-section');
-                    const adminNav = document.getElementById('admin-nav');
 
-                    if (isLoggedIn && !userRole) {
-                        localStorage.setItem('userRole', 'superadmin');
-                        window.location.reload();
+                    @if(auth()->check())
+                    const navDashboard = document.getElementById('nav-dashboard');
+                    if (navDashboard) navDashboard.classList.remove('hidden');
+                    if (document.getElementById('nav-perizinan')) {
+                        document.getElementById('nav-perizinan').classList.remove('hidden');
                     }
 
-                    if (isLoggedIn) {
-                        document.getElementById('nav-dashboard').classList.remove('hidden');
-                        if (document.getElementById('nav-perizinan')) {
-                            document.getElementById('nav-perizinan').classList.remove('hidden');
-                        }
-
-                        if (localStorage.getItem('userRole') === 'superadmin' && adminNav) {
-                            adminNav.classList.remove('hidden');
-                        }
-
-                        authSection.innerHTML = `
-                            <button onclick="logout()" class="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-100 hover:bg-red-500 hover:text-white rounded-lg transition-colors text-sm font-medium">
-                                <i class="ph ph-sign-out"></i> Logout
-                            </button>
-                        `;
-                    } else {
-                        if (document.getElementById('nav-perizinan')) {
-                            document.getElementById('nav-perizinan').classList.add('hidden');
-                        }
-                        authSection.innerHTML = `
-                            <a href="{{ route('login') }}" class="flex items-center gap-2 px-4 py-2 bg-accent text-white hover:bg-blue-600 rounded-lg transition-colors text-sm font-medium">
-                                <i class="ph ph-sign-in"></i> Login
-                            </a>
-                        `;
+                    authSection.innerHTML = `
+                        <button onclick="logout()" class="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-100 hover:bg-red-500 hover:text-white rounded-lg transition-colors text-sm font-medium">
+                            <i class="ph ph-sign-out"></i> Logout
+                        </button>
+                    `;
+                    @else
+                    if (document.getElementById('nav-perizinan')) {
+                        document.getElementById('nav-perizinan').classList.add('hidden');
                     }
+                    authSection.innerHTML = `
+                        <a href="{{ route('login') }}" class="flex items-center gap-2 px-4 py-2 bg-accent text-white hover:bg-blue-600 rounded-lg transition-colors text-sm font-medium">
+                            <i class="ph ph-sign-in"></i> Login
+                        </a>
+                    `;
+                    @endif
                 });
 
                 function logout() {
-                    localStorage.removeItem('isLoggedIn');
-                    localStorage.removeItem('userRole');
-                    window.location.href = "{{ route('home') }}";
+                    localStorage.clear();
+                    window.location.href = "{{ route('logout') }}";
                 }
             </script>
         </div>
@@ -325,8 +313,16 @@
                         <div class="text-[10px] text-gray-500 mt-1 uppercase">Jatuh Tempo</div>
                     </div>
                     <div class="col-span-2 bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-center">
+                        @if(auth()->check())
                         <div id="summary-total-pnbp" class="text-lg font-bold text-status-active">Rp 0</div>
                         <div class="text-[10px] text-gray-500 mt-1 uppercase">Total PNBP</div>
+                        @else
+                        <div class="flex items-center justify-center gap-1.5 text-gray-400">
+                            <i class="ph-fill ph-lock text-sm"></i>
+                            <span class="text-xs font-medium">Login untuk melihat</span>
+                        </div>
+                        <div class="text-[10px] text-gray-500 mt-1 uppercase">Total PNBP</div>
+                        @endif
                     </div>
                     <div class="col-span-2 bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-center">
                         <div id="summary-panjang-jalan" class="text-lg font-bold text-accent">Menghitung...</div>
@@ -475,19 +471,19 @@
                             <p id="teknis-sta-akhir" class="text-sm font-medium text-gray-800">-</p>
                         </div>
                     </div>
-                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Dimensi Pemanfaatan</label>
-                        <div class="flex justify-between items-center mb-1">
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-100" id="container-area-pemanfaatan">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Area Pemanfaatan</label>
+                        <div id="row-panjang" class="flex justify-between items-center mb-1">
                             <span class="text-xs text-gray-600">Panjang</span>
                             <span id="teknis-panjang" class="text-xs font-semibold">-</span>
                         </div>
-                        <div class="flex justify-between items-center mb-1">
+                        <div id="row-lebar" class="flex justify-between items-center mb-1">
                             <span class="text-xs text-gray-600">Lebar</span>
-                            <span class="text-xs font-semibold">2 Meter</span>
+                            <span id="teknis-lebar" class="text-xs font-semibold">-</span>
                         </div>
-                        <div class="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
+                        <div id="row-total-area" class="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
                             <span class="text-xs font-bold text-gray-700">Total Area</span>
-                            <span class="text-xs font-bold text-primary">Dihitung otomatis</span>
+                            <span id="teknis-total-area" class="text-xs font-bold text-primary">-</span>
                         </div>
                     </div>
                 </div>
@@ -519,8 +515,9 @@
     <!-- Custom Logic -->
     <script>
         window.API_BASE_URL = "{{ url('/') }}";
+        window.IS_LOGGED_IN = {{ auth()->check() ? 'true' : 'false' }};
     </script>
-    <script type="module" src="{{ asset('js/app.js') }}"></script>
+    <script type="module" src="{{ asset('js/app.js') }}?v={{ time() }}"></script>
     <script>
         // Sidebar Toggle Logic
         const leftSidebar = document.getElementById('left-sidebar');

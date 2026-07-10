@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <script>
-        if (localStorage.getItem('isLoggedIn') !== 'true' || localStorage.getItem('userRole') !== 'superadmin') {
-            window.location.href = "{{ route('dashboard') }}";
-        }
-    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <title>Manajemen User | Siperjalan</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -247,7 +244,7 @@
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
@@ -268,7 +265,7 @@
         async function deleteUser(id) {
             if (!confirm('Apakah Anda yakin ingin menghapus user ini?')) return;
             try {
-                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Accept': 'application/json' } });
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
                 const result = await response.json();
                 if (result.success) {
                     fetchUsers();
@@ -281,9 +278,8 @@
         }
 
         function logout() {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('userRole');
-            window.location.href = "{{ route('home') }}";
+            localStorage.clear();
+            window.location.href = "{{ route('logout') }}";
         }
 
         document.addEventListener('DOMContentLoaded', fetchUsers);
