@@ -48,10 +48,10 @@ class CheckExpiringPermits extends Command
             $this->warn("{$expiredCount} izin telah diupdate ke status 'kadaluarsa'.");
         }
 
-        // 2. Update status ke 'hampir_habis' jika dalam rentang 30 hari
+        // 2. Update status ke 'hampir_habis' jika dalam rentang 90 hari
         $almostExpiredCount = Perizinan::whereBetween('tanggal_akhir', [
                 Carbon::now()->toDateString(), 
-                Carbon::now()->addDays(30)->toDateString()
+                Carbon::now()->addDays(90)->toDateString()
             ])
             ->where('status', 'aktif')
             ->update(['status' => 'hampir_habis']);
@@ -91,7 +91,7 @@ class CheckExpiringPermits extends Command
                                "tepat waktu sebelum izin berakhir.\n\n" .
                                "📞 Untuk informasi lebih lanjut, silakan menghubungi kantor BPJN NTB.\n\n" .
                                "Terima kasih atas perhatian dan kerja samanya.\n\n" .
-                               "_Pesan ini dikirim otomatis oleh Sistem Informasi Perizinan Siperjalan BPJN NTB._";
+                               "_Pesan ini dikirim otomatis oleh Sistem Informasi Perizinan Simpanan BPJN NTB._";
 
                     $this->info("Mengirim early warning H-{$days} ke {$permit->no_hp} (Izin: {$permit->nomor_izin})");
 
@@ -144,7 +144,7 @@ class CheckExpiringPermits extends Command
                                    : "Mohon segera melakukan permohonan perpanjangan jika masih diperlukan.\n\n"
                                ) .
                                "Terima kasih.\n\n" .
-                               "_Pesan ini dikirim otomatis oleh Sistem Siperjalan BPJN NTB._";
+                               "_Pesan ini dikirim otomatis oleh Sistem Simpanan BPJN NTB._";
                     
                     $this->info("Mengirim notifikasi urgent H-{$days} ke {$permit->no_hp} (Izin: {$permit->nomor_izin})");
                     

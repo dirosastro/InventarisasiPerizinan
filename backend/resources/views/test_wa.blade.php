@@ -5,11 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>WhatsApp Tester | Siperjalan</title>
+    <meta name="description" content="WhatsApp Bot Tester - Uji kirim pesan otomatis notifikasi perizinan Simpanan BPJN NTB.">
+    <title>WhatsApp Tester - Simpanan (Sistem Informasi Perizinan Jalan)</title>
+
+    <!-- Resource Hints & Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -40,16 +46,14 @@
 
         <form id="test-form" class="space-y-4">
             <div>
-                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Nomor
-                    WhatsApp</label>
+                <label for="phone_number" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Nomor WhatsApp</label>
                 <input type="text" id="phone_number" required placeholder="08..."
                     class="w-full px-4 py-3.5 bg-gray-50 border rounded-2xl">
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Pesan
-                    Tes</label>
+                <label for="message" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Pesan Tes</label>
                 <textarea id="message" required rows="6"
-                    class="w-full px-4 py-3.5 bg-gray-50 border rounded-2xl">Tes Bot Siperjalan!</textarea>
+                    class="w-full px-4 py-3.5 bg-gray-50 border rounded-2xl">Tes Bot Simpanan!</textarea>
             </div>
             <button type="submit" id="btn-send"
                 class="w-full py-4 bg-green-600 text-white font-bold rounded-2xl shadow-lg">

@@ -5,11 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Kelola akun akses sistem Simpanan BPJN NTB untuk operator dan superadmin.">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-    <title>Manajemen User | Siperjalan</title>
+    <title>Manajemen User - Simpanan (Sistem Informasi Perizinan Jalan)</title>
+
+    <!-- Resource Hints & Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .text-primary { color: #0066FF; }
@@ -31,7 +38,7 @@
                 <i class="ph-fill ph-road-horizon text-white text-2xl"></i>
             </div>
             <div>
-                <h1 class="font-extrabold text-gray-900 tracking-tight leading-none">Siperjalan</h1>
+                <h1 class="font-extrabold text-gray-900 tracking-tight leading-none">Simpanan</h1>
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">BPJN NTB</p>
             </div>
         </div>
@@ -75,7 +82,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-800">Manajemen Pengguna</h1>
-                    <p class="text-sm text-gray-500 mt-1">Kelola akun akses sistem Siperjalan BPJN NTB.</p>
+                    <p class="text-sm text-gray-500 mt-1">Kelola akun akses sistem Simpanan BPJN NTB.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="fetchUsers()" class="p-2.5 text-gray-400 hover:text-accent hover:bg-gray-100 rounded-xl transition-all" title="Refresh Data">
@@ -115,22 +122,22 @@
             </div>
             <form id="user-form" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nama Lengkap</label>
+                    <label for="user-nama" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nama Lengkap</label>
                     <input type="text" id="user-nama" required placeholder="Contoh: Budi Santoso"
                         class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-gray-50">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
+                    <label for="user-username" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
                     <input type="text" id="user-username" required placeholder="Contoh: budi123"
                         class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-gray-50">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
+                    <label for="user-password" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
                     <input type="password" id="user-password" required placeholder="Minimal 6 karakter"
                         class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-gray-50">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Role / Level</label>
+                    <label for="user-role" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Role / Level</label>
                     <select id="user-role" required
                         class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-gray-50">
                         <option value="user">User / Operator</option>

@@ -111,7 +111,7 @@ const getStatusColor = (status) => {
 const getStatusLabel = (status) => {
     switch (status) {
         case 'aktif': return 'Aktif';
-        case 'hampir_habis': return 'Hampir Habis';
+        case 'hampir_habis': return 'Akan Jatuh Tempo';
         case 'kadaluarsa': return 'Kadaluarsa';
         default: return status;
     }
@@ -218,6 +218,15 @@ const styleRumija = (feature) => {
         fillOpacity: 0.2,
         weight: 2,
         dashArray: '5, 5'
+    };
+};
+
+const styleRumaja = (feature) => {
+    return {
+        color: '#9F7AEA', // purple-400
+        fillColor: '#9F7AEA',
+        fillOpacity: 0.3,
+        weight: 1
     };
 };
 
@@ -463,7 +472,7 @@ function renderPerizinanOnMap() {
                                         properties: { ...commonProps, is_utility_line: true, panjang_dimanfaatkan: utilLen }
                                     });
 
-                                    const permitArea = turf.buffer(sliced, 12, { units: 'meters' });
+                                    const permitArea = turf.buffer(sliced, 4, { units: 'meters' });
                                     allFeatures.push({
                                         type: 'Feature',
                                         geometry: permitArea.geometry,
@@ -623,12 +632,14 @@ fetch((window.API_BASE_URL || '') + '/data/Peta%20Jalan%20Nasional.geojson')
             }
         });
 
-        // 2. Generate Poligon (Buffer) for RUMIJA using Turf.js
+        // 2. Generate Poligon (Buffer) for RUMIJA & RUMAJA using Turf.js
         try {
-            // Buffer roads by 15 meters to create polygons
-            const bufferedPolygons = turf.buffer(projectedGeoJSON, 15, { units: 'meters' });
+            // RUMIJA (Ruang Milik Jalan) - disamakan 4m atas permintaan
+            const bufferedRumija = turf.buffer(projectedGeoJSON, 4, { units: 'meters' });
+            // RUMAJA (Ruang Manfaat Jalan) - buffer 4m agar tidak mengenai tanah warga
+            const bufferedRumaja = turf.buffer(projectedGeoJSON, 4, { units: 'meters' });
 
-            L.geoJSON(bufferedPolygons, {
+            L.geoJSON(bufferedRumija, {
                 style: styleRumija,
                 onEachFeature: function (feature, layer) {
                     const namaRuas = feature.properties['Nama Ruas'] || feature.properties.LINK_NAME;
@@ -650,19 +661,40 @@ fetch((window.API_BASE_URL || '') + '/data/Peta%20Jalan%20Nasional.geojson')
                                     </div>
                                 </div>
                                 <div class="mt-3 pt-3 border-t border-gray-100">
-                                    <p class="text-[10px] text-gray-500 mb-2">Ajukan Izin lewat aplikasi berikut:</p>
+                                    <p class="text-[10px] text-gray-500 mb-2 font-semibold">Pilih aplikasi sesuai jenis pemohon:</p>
+                                    <div class="mb-2 space-y-1">
+                                        <p class="text-[9px] text-gray-500 leading-tight"><b>OKSIP &rarr;</b> Untuk instansi pemerintah, lembaga non-profit, dan perorangan yang tidak bertujuan memperoleh keuntungan.</p>
+                                        <p class="text-[9px] text-gray-500 leading-tight"><b>OSS &rarr;</b> Untuk perusahaan atau badan usaha yang menjalankan kegiatan usaha dan memperoleh keuntungan (profit).</p>
+                                    </div>
                                     <div class="flex gap-2">
-                                    <a href="https://oksip.pu.go.id/" target="_blank" rel="noopener noreferrer" class="bg-blue-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 hover:bg-blue-700 transition-colors no-underline" style="color: white; text-decoration: none;">
-                                        <i class="ph ph-arrow-square-out"></i> OKSIP
-                                    </a>
-                                    <a href="https://oss.go.id/id" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 hover:bg-emerald-700 transition-colors no-underline" style="color: white; text-decoration: none;">
-                                        <i class="ph ph-arrow-square-out"></i> OSS
-                                    </a>
+                                        <a href="https://oksip.pu.go.id/" target="_blank" rel="noopener noreferrer" class="bg-blue-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 hover:bg-blue-700 transition-colors no-underline" style="color: white; text-decoration: none;">
+                                            <i class="ph ph-arrow-square-out"></i> OKSIP
+                                        </a>
+                                        <a href="https://oss.go.id/id" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 hover:bg-emerald-700 transition-colors no-underline" style="color: white; text-decoration: none;">
+                                            <i class="ph ph-arrow-square-out"></i> OSS
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         `);
                     }
                     layers.rumija.addLayer(layer);
+                }
+            });
+
+            L.geoJSON(bufferedRumaja, {
+                style: styleRumaja,
+                onEachFeature: function (feature, layer) {
+                    const namaRuas = feature.properties['Nama Ruas'] || feature.properties.LINK_NAME;
+                    if (namaRuas) {
+                        layer.bindPopup(`
+                            <div class="p-1">
+                                <b class="text-purple-600 block mb-1">Area RUMAJA</b>
+                                <div class="text-sm font-bold mb-2">${namaRuas}</div>
+                            </div>
+                        `);
+                    }
+                    layers.rumaja.addLayer(layer);
                 }
             });
         } catch (e) {
@@ -1177,6 +1209,14 @@ document.getElementById('layer-rumija').addEventListener('change', (e) => {
     if (e.target.checked) map.addLayer(layers.rumija);
     else map.removeLayer(layers.rumija);
 });
+
+const layerRumajaEl = document.getElementById('layer-rumaja');
+if (layerRumajaEl) {
+    layerRumajaEl.addEventListener('change', (e) => {
+        if (e.target.checked) map.addLayer(layers.rumaja);
+        else map.removeLayer(layers.rumaja);
+    });
+}
 
 document.getElementById('layer-titik').addEventListener('change', (e) => {
     if (e.target.checked) map.addLayer(layers.izin);

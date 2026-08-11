@@ -64,6 +64,22 @@ class PerizinanController extends Controller
             ->leftJoin('perizinan_geo', 'perizinan.id', '=', 'perizinan_geo.perizinan_id')
             ->select('perizinan.*', 'perizinan_geo.geojson')
             ->get();
+
+        // Hitung status secara real-time berdasarkan tanggal_akhir
+        $now = \Carbon\Carbon::now()->startOfDay();
+        $data->each(function ($item) use ($now) {
+            if ($item->tanggal_akhir) {
+                $tglAkhir = \Carbon\Carbon::parse($item->tanggal_akhir)->startOfDay();
+                if ($tglAkhir->lt($now)) {
+                    $item->status = 'kadaluarsa';
+                } elseif ($tglAkhir->diffInDays($now) <= 90) {
+                    $item->status = 'hampir_habis';
+                } else {
+                    $item->status = 'aktif';
+                }
+            }
+        });
+
         return response()->json([
             'success' => true,
             'message' => 'Daftar Perizinan',
@@ -82,11 +98,17 @@ class PerizinanController extends Controller
         try {
             $file = $request->file('file');
             $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $request->nomor_izin . ' - ' . $request->pemohon);
-            $filename = $request->pemohon . '_' . $file->getClientOriginalName();
+            // Randomize filename for security
+            $filename = $request->pemohon . '_' . \Illuminate\Support\Str::random(24) . '.' . $file->getClientOriginalExtension();
             $filePath = $folderName . '/' . $filename;
 
             // Simpan ke Google Drive
             $file->storeAs($folderName, $filename, 'google');
+            \Illuminate\Support\Facades\Log::info('Temporary file uploaded to GDrive.', [
+                'username' => auth()->user() ? auth()->user()->email : 'guest',
+                'filepath' => $filePath,
+                'original_name' => $file->getClientOriginalName()
+            ]);
 
             $url = $filePath;
             try {
@@ -169,11 +191,17 @@ class PerizinanController extends Controller
                 $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $validated['nomor_izin'] . ' - ' . $validated['pemohon']);
                  
                 foreach ($request->file('dokumen') as $file) {
-                    $filename = $validated['pemohon'] . '_' . $file->getClientOriginalName();
+                    // Randomize filename for security
+                    $filename = $validated['pemohon'] . '_' . \Illuminate\Support\Str::random(24) . '.' . $file->getClientOriginalExtension();
                     $filePath = $folderName . '/' . $filename;
                      
                     // Simpan ke Google Drive dalam subfolder per perizinan
                     $file->storeAs($folderName, $filename, 'google');
+                    \Illuminate\Support\Facades\Log::info('Document file uploaded to GDrive.', [
+                        'username' => auth()->user() ? auth()->user()->email : 'guest',
+                        'filepath' => $filePath,
+                        'original_name' => $file->getClientOriginalName()
+                    ]);
                      
                     $url = $filePath;
                     try {
@@ -355,11 +383,17 @@ class PerizinanController extends Controller
                 $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $validated['nomor_izin'] . ' - ' . $validated['pemohon']);
                 
                 foreach ($request->file('dokumen') as $file) {
-                    $filename = $validated['pemohon'] . '_' . $file->getClientOriginalName();
+                    // Randomize filename for security
+                    $filename = $validated['pemohon'] . '_' . \Illuminate\Support\Str::random(24) . '.' . $file->getClientOriginalExtension();
                     $filePath = $folderName . '/' . $filename;
                     
                     // Simpan ke Google Drive dalam subfolder per perizinan
                     $file->storeAs($folderName, $filename, 'google');
+                    \Illuminate\Support\Facades\Log::info('New document file uploaded to GDrive on update.', [
+                        'username' => auth()->user() ? auth()->user()->email : 'guest',
+                        'filepath' => $filePath,
+                        'original_name' => $file->getClientOriginalName()
+                    ]);
                     
                     $url = $filePath;
                     try {
@@ -412,6 +446,14 @@ class PerizinanController extends Controller
 
             // Hapus data perizinan (Relasi lokasi akan terhapus otomatis karena CASCADE di DB)
             $perizinan->delete();
+
+            \Illuminate\Support\Facades\Log::info('Perizinan deleted.', [
+                'deleted_by' => auth()->user() ? auth()->user()->email : 'system',
+                'perizinan_id' => $id,
+                'nomor_izin' => $perizinan->nomor_izin,
+                'pemohon' => $perizinan->pemohon,
+                'ip' => request()->ip()
+            ]);
 
             DB::commit();
 

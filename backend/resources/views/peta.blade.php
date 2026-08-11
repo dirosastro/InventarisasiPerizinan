@@ -4,8 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Peta Pemanfaatan Bagian Jalan Nasional BPJN NTB - Interaktif dan Terintegrasi.">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-    <title>Siperjalan - BPJN NTB</title>
+    <title>Peta Pemanfaatan - Simpanan (Sistem Informasi Perizinan Jalan)</title>
+
+    <!-- Resource Hints & Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,10 +37,11 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
     <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"></noscript>
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
@@ -124,11 +131,11 @@
     <header class="bg-primary text-white h-[60px] flex items-center justify-between px-4 lg:px-6 shadow-md z-50 shrink-0">
         <div class="flex items-center gap-3">
             <a href="{{ route('home') }}" class="flex items-center gap-2 font-bold text-lg tracking-wide">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-8 w-auto">
-                <span class="hidden sm:inline">Siperjalan</span>
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Simpanan" width="32" height="32" class="h-8 w-auto">
+                <span class="hidden sm:inline">Simpanan</span>
             </a>
-            <button id="mobile-menu-toggle" class="md:hidden text-white p-2">
-                <i class="ph ph-list text-2xl"></i>
+            <button id="mobile-menu-toggle" aria-label="Toggle mobile menu" class="md:hidden text-white p-2">
+                <i class="ph ph-list text-2xl" aria-hidden="true"></i>
             </button>
         </div>
 
@@ -142,10 +149,10 @@
             </nav>
 
             <div class="relative hidden sm:block">
-                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="search-input" list="ruas-list" placeholder="Cari ruas / izin..."
+                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true"></i>
+                <input type="text" id="search-input" aria-label="Cari ruas atau izin" list="ruas-list" placeholder="Cari ruas / izin..."
                     class="bg-secondary/50 text-white placeholder-gray-300 text-sm rounded-full pl-9 pr-10 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent w-[200px] lg:w-[280px] transition-all">
-                <button id="clear-search"
+                <button id="clear-search" aria-label="Hapus pencarian"
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white hidden transition-all">
                     <i class="ph ph-x-circle text-lg"></i>
                 </button>
@@ -202,19 +209,19 @@
         <aside id="left-sidebar"
             class="fixed lg:relative inset-y-0 left-0 w-[280px] bg-white shadow-[4px_0_10px_rgba(0,0,0,0.05)] z-40 flex flex-col h-full shrink-0 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300 -translate-x-full lg:translate-x-0">
 
-            <button id="toggle-sidebar"
+            <button id="toggle-sidebar" aria-label="Toggle sidebar layer control"
                 class="hidden lg:flex absolute -right-8 top-1/2 -translate-y-1/2 bg-white border border-l-0 border-gray-200 w-8 h-16 rounded-r-xl shadow-[4px_2px_10px_rgba(0,0,0,0.05)] z-50 items-center justify-center hover:bg-gray-50 group transition-all duration-300">
                 <i class="ph ph-caret-left text-gray-400 group-hover:text-primary transition-transform duration-300"
-                    id="toggle-icon"></i>
+                    id="toggle-icon" aria-hidden="true"></i>
             </button>
 
             <div class="p-4 border-b border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="font-semibold text-gray-700 flex items-center gap-2">
-                        <i class="ph ph-funnel"></i> Filter Data
+                        <i class="ph ph-funnel" aria-hidden="true"></i> Filter Data
                     </h2>
-                    <button class="lg:hidden text-gray-400" id="close-sidebar">
-                        <i class="ph ph-x text-xl"></i>
+                    <button class="lg:hidden text-gray-400" id="close-sidebar" aria-label="Tutup filter">
+                        <i class="ph ph-x text-xl" aria-hidden="true"></i>
                     </button>
                 </div>
 
@@ -253,7 +260,7 @@
                             <label class="flex items-center gap-2 text-sm cursor-pointer">
                                 <input type="checkbox" id="filter-status-warning"
                                     class="rounded text-status-warning focus:ring-status-warning" checked>
-                                <span class="w-3 h-3 rounded-full bg-status-warning"></span> Hampir Habis (&lt;30 hari)
+                                <span class="w-3 h-3 rounded-full bg-status-warning"></span> Akan Jatuh Tempo (&le;90 hari)
                             </label>
                             <label class="flex items-center gap-2 text-sm cursor-pointer">
                                 <input type="checkbox" id="filter-status-expired"
@@ -388,7 +395,7 @@
                     <div class="flex items-center gap-2"><span
                             class="w-3 h-3 rounded-full bg-status-active block"></span> Izin Aktif</div>
                     <div class="flex items-center gap-2"><span
-                            class="w-3 h-3 rounded-full bg-status-warning block"></span> Hampir Habis</div>
+                            class="w-3 h-3 rounded-full bg-status-warning block"></span> Akan Jatuh Tempo</div>
                     <div class="flex items-center gap-2"><span
                             class="w-3 h-3 rounded-full bg-status-expired block"></span> Kadaluarsa</div>
                 </div>

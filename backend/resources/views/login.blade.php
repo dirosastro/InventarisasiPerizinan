@@ -5,8 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Halaman login administratif Sistem Informasi Perizinan Jalan (Simpanan) BPJN NTB.">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-    <title>Login - Siperjalan</title>
+    <title>Akses Admin - Simpanan</title>
+
+    <!-- Resource Hints & Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,10 +34,11 @@
     </script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
 
     <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
     
     <style>
         body {
@@ -61,10 +68,10 @@
         <!-- Logo -->
         <div class="text-center mb-8">
             <a href="{{ route('home') }}" class="inline-block mb-4 hover:scale-105 transition-transform">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo Siperjalan" class="h-16 w-auto mx-auto">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Simpanan BPJN NTB" width="64" height="64" class="h-16 w-auto mx-auto">
             </a>
             <h1 class="text-2xl font-bold text-white">Selamat Datang Kembali</h1>
-            <p class="text-white/80 text-sm mt-1">Masuk ke Dasbor Admin Siperjalan</p>
+            <p class="text-white/80 text-sm mt-1">Masuk ke Dasbor Admin Simpanan</p>
         </div>
 
         <!-- Form Card -->
@@ -77,23 +84,23 @@
 
             <form id="login-form" class="space-y-5">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
                     <div class="relative">
-                        <i class="ph ph-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        <i class="ph ph-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" aria-hidden="true"></i>
                         <input type="text" id="username" required placeholder="Masukkan username"
                             class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
                     <div class="relative">
-                        <i class="ph ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        <i class="ph ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" aria-hidden="true"></i>
                         <input type="password" id="password" required placeholder="••••••••"
                             class="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                        <button type="button" id="toggle-password"
+                        <button type="button" id="toggle-password" aria-label="Tampilkan password"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                            <i class="ph ph-eye text-lg"></i>
+                            <i class="ph ph-eye text-lg" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>

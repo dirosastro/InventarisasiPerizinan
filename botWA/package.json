@@ -1,7 +1,7 @@
 {
   "name": "botwa",
   "version": "2.0.0",
-  "description": "WhatsApp Bot Siperjalan - Powered by Baileys",
+  "description": "WhatsApp Bot Simpanan - Powered by Baileys",
   "main": "bot.js",
   "type": "module",
   "scripts": {

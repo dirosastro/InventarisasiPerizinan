@@ -43,7 +43,7 @@ async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
     const { version } = await fetchLatestBaileysVersion();
 
-    console.log(`\n🤖  Siperjalan WhatsApp Bot menggunakan Baileys v${version.join('.')}\n`);
+    console.log(`\n🤖  Simpanan WhatsApp Bot menggunakan Baileys v${version.join('.')}\n`);
 
     sock = makeWASocket({
         version,
@@ -102,7 +102,7 @@ async function startBot() {
         }
 
         if (connection === 'open') {
-            console.log('\n✅  WhatsApp Bot Siperjalan sudah SIAP dan TERKONEKSI!\n');
+            console.log('\n✅  WhatsApp Bot Simpanan sudah SIAP dan TERKONEKSI!\n');
         }
     });
 

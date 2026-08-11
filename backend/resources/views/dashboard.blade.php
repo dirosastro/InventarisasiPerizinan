@@ -5,8 +5,14 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dashboard Eksekutif Simpanan - Ringkasan status perizinan dan penerimaan negara (PNBP).">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-    <title>Siperjalan - Dashboard</title>
+    <title>Dashboard - Simpanan (Sistem Informasi Perizinan Jalan)</title>
+
+    <!-- Resource Hints & Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,16 +34,17 @@
     </script>
 
     <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"></noscript>
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-['Inter'] h-screen overflow-hidden flex flex-col">
@@ -46,8 +53,8 @@
     <header class="bg-primary text-white h-[60px] flex items-center justify-between px-4 lg:px-6 shadow-md z-50 shrink-0">
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-2 font-bold text-lg tracking-wide">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-8 w-auto">
-                <span>Siperjalan</span>
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Simpanan" width="32" height="32" class="h-8 w-auto">
+                <span>Simpanan</span>
             </div>
 
             <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
@@ -158,7 +165,7 @@
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-base font-bold text-gray-800">Tren Penerimaan PNBP</h3>
-                        <select id="year-filter" class="text-xs border-gray-200 rounded text-gray-500 bg-gray-50 focus:ring-accent">
+                        <select id="year-filter" aria-label="Pilih tahun untuk tren PNBP" class="text-xs border-gray-200 rounded text-gray-500 bg-gray-50 focus:ring-accent">
                             <option value="all">Semua Tahun</option>
                         </select>
                     </div>

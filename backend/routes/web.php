@@ -58,6 +58,25 @@ Route::get('/manajemen-user', function () {
 Route::prefix('api')->group(function () {
     // Public API
     Route::post('/login', [UserController::class, 'login']);
+    Route::post('/cs-chat', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'number' => 'required|string',
+            'message' => 'required|string',
+            'name' => 'nullable|string'
+        ]);
+
+        $wa = new \App\Services\WhatsAppService();
+        $name = $request->name ?: 'Visitor';
+        
+        $messageText = "*Pesan Baru dari Website Siperjalan*\n\nHalo {$name}, terima kasih telah menghubungi kami.\nPesan Anda:\n\"{$request->message}\"\n\nTunggu sebentar ya, Admin kami akan segera membalas pesan Anda di chat ini.";
+        
+        $result = $wa->sendMessage($request->number, $messageText);
+
+        if ($result) {
+            return response()->json(['success' => true, 'message' => 'Pesan terkirim!']);
+        }
+        return response()->json(['success' => false, 'message' => 'Gagal mengirim pesan, bot mungkin offline.'], 500);
+    });
     Route::get('/perizinan', [PerizinanController::class, 'index']);
     Route::get('/perizinan/{id}', [PerizinanController::class, 'show']);
     Route::get('/perizinan/download/{id}', [PerizinanController::class, 'download']);

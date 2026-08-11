@@ -5,9 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-    <title>Dasar Hukum - Siperjalan</title>
+    <title>Dasar Hukum - Simpanan (Sistem Informasi Perizinan Jalan)</title>
     <meta name="description" content="Dasar hukum perizinan pemanfaatan bagian jalan nasional di Provinsi Nusa Tenggara Barat.">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- Resource Hints & Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,8 +30,9 @@
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"></noscript>
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
     <style>
         .nav-sticky { position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,.1); }
@@ -59,9 +65,9 @@
     <nav class="nav-sticky bg-white py-4 px-6 border-b border-gray-100">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo Siperjalan" class="h-12 w-auto">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Simpanan BPJN NTB" width="48" height="48" class="h-12 w-auto">
                 <div class="flex flex-col leading-tight border-l pl-4 border-gray-200">
-                    <span class="font-bold text-xl text-bps-navy tracking-tight uppercase">Siperjalan</span>
+                    <span class="font-bold text-xl text-bps-navy tracking-tight uppercase">Simpanan</span>
                     <span class="text-[10px] text-bps-gray font-semibold tracking-widest uppercase">Sistem Informasi Perizinan Jalan</span>
                 </div>
             </div>
@@ -87,8 +93,8 @@
                 @endauth
             </div>
 
-            <button id="mobile-menu-btn" class="lg:hidden text-bps-navy p-2 focus:outline-none">
-                <i class="ph ph-list text-3xl"></i>
+            <button id="mobile-menu-btn" aria-label="Toggle navigation menu" class="lg:hidden text-bps-navy p-2 focus:outline-none">
+                <i class="ph ph-list text-3xl" aria-hidden="true"></i>
             </button>
         </div>
 
@@ -158,8 +164,8 @@
         <!-- SEARCH & FILTER -->
         <div class="flex flex-col md:flex-row gap-4 mb-8 animate-in delay-2">
             <div class="relative flex-1">
-                <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
-                <input type="text" id="search-hukum" placeholder="Cari peraturan, nomor, atau kata kunci..."
+                <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" aria-hidden="true"></i>
+                <input type="text" id="search-hukum" aria-label="Cari dasar hukum, nomor, atau kata kunci" placeholder="Cari peraturan, nomor, atau kata kunci..."
                     class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-bps-blue/30">
             </div>
             <div class="flex gap-2 flex-wrap">
@@ -189,8 +195,8 @@
             <div class="flex flex-col md:flex-row justify-between items-start gap-8">
                 <div class="max-w-xs">
                     <div class="flex items-center gap-3 mb-3">
-                        <img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-10 w-auto">
-                        <span class="font-bold text-lg">Siperjalan</span>
+                        <img src="{{ asset('img/logo.png') }}" alt="Logo Simpanan BPJN NTB" width="40" height="40" class="h-10 w-auto">
+                        <span class="font-bold text-lg">Simpanan</span>
                     </div>
                     <p class="text-blue-200 text-sm leading-relaxed">Sistem Informasi Perizinan Jalan Nasional — BPJN Nusa Tenggara Barat.</p>
                 </div>
@@ -211,7 +217,7 @@
                 </div>
             </div>
             <div class="border-t border-blue-900 mt-8 pt-6 text-center text-xs text-blue-300">
-                &copy; {{ date('Y') }} Siperjalan — BPJN Nusa Tenggara Barat. Hak Cipta Dilindungi.
+                &copy; {{ date('Y') }} Simpanan — BPJN Nusa Tenggara Barat. Hak Cipta Dilindungi.
             </div>
         </div>
     </footer>

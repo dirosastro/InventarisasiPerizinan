@@ -1,4 +1,4 @@
-# Script Otomatisasi Deployment Siperjalan (PowerShell)
+# Script Otomatisasi Deployment Simpanan (PowerShell)
 # Simpan file ini dengan nama: deploy.ps1
 
 # --- KONFIGURASI SERVER ---
@@ -7,13 +7,13 @@ $SERVER_USER = "root"
 $REMOTE_BASE_PATH = "/var/www" # Folder utama di server
 
 # Folder tujuan di server (Sesuaikan dengan setting Nginx/Apache)
-$PATH_FRONTEND = "$REMOTE_BASE_PATH/siperjalan"
-$PATH_BACKEND = "$REMOTE_BASE_PATH/api-siperjalan"
-$PATH_BOT = "$REMOTE_BASE_PATH/bot-siperjalan"
+$PATH_FRONTEND = "$REMOTE_BASE_PATH/simpanan"
+$PATH_BACKEND = "$REMOTE_BASE_PATH/api-simpanan"
+$PATH_BOT = "$REMOTE_BASE_PATH/bot-simpanan"
 
 function Show-Header {
     Write-Host "==============================================" -ForegroundColor Cyan
-    Write-Host "   SIPERJALAN DEPLOYMENT AUTOMATION" -ForegroundColor Cyan
+    Write-Host "   SIMPANAN DEPLOYMENT AUTOMATION" -ForegroundColor Cyan
     Write-Host "==============================================" -ForegroundColor Cyan
 }
 

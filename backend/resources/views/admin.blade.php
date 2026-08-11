@@ -6,8 +6,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Formulir administrasi penambahan dan pengeditan data perizinan pemanfaatan jalan nasional BPJN NTB.">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-    <title>Siperjalan - Tambah Perizinan</title>
+    <title>Kelola Perizinan - Simpanan (Sistem Informasi Perizinan Jalan)</title>
+
+    <!-- Resource Hints & Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,9 +32,10 @@
     </script>
 
     <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"></noscript>
     <!-- JSZip for KMZ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- toGeoJSON for KML -->
@@ -64,8 +71,8 @@
     <header class="bg-primary text-white h-[60px] flex items-center justify-between px-4 lg:px-6 shadow-md z-50 shrink-0">
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-2 font-bold text-lg tracking-wide">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-8 w-auto">
-                <span>Siperjalan - ADMIN Panel</span>
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Simpanan" width="32" height="32" class="h-8 w-auto">
+                <span>Simpanan - ADMIN Panel</span>
             </div>
             <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
                 <a href="{{ route('home') }}" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors">Beranda</a>
@@ -122,26 +129,26 @@
                         <h2 class="font-semibold text-lg border-b pb-2 mb-4">Informasi Umum</h2>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Izin</label>
+                            <label for="nomor_izin" class="block text-sm font-medium text-gray-700 mb-1">Nomor Izin</label>
                             <input type="text" id="nomor_izin" required placeholder="IZN/BPJN-NTB/2026/001" 
                                 class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-all bg-gray-50 hover:bg-white">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pemohon / Perusahaan</label>
+                            <label for="pemohon" class="block text-sm font-medium text-gray-700 mb-1">Nama Pemohon / Perusahaan</label>
                             <input type="text" id="pemohon" required placeholder="PT. Telekomunikasi..." 
                                 class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-all bg-gray-50 hover:bg-white">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nomor HP Pemohon (WhatsApp)</label>
+                            <label for="no_hp" class="block text-sm font-medium text-gray-700 mb-1">Nomor HP Pemohon (WhatsApp)</label>
                             <input type="text" id="no_hp" required placeholder="081234567890" 
                                 class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-all bg-gray-50 hover:bg-white">
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Izin</label>
+                                <label for="jenis_izin" class="block text-sm font-medium text-gray-700 mb-1">Jenis Izin</label>
                                 <select id="jenis_izin" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white">
                                     <option value="izin">Izin</option>
                                     <option value="rekomendasi">Rekomendasi</option>
@@ -149,7 +156,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Sub Jenis</label>
+                                <label for="sub_jenis" class="block text-sm font-medium text-gray-700 mb-1">Sub Jenis</label>
                                 <select id="sub_jenis" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed">
                                 </select>
                             </div>
@@ -157,24 +164,24 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Terbit</label>
+                                <label for="tanggal_terbit" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Terbit</label>
                                 <input type="date" id="tanggal_terbit" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white">
                             </div>
                             <div id="container_tanggal_akhir">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Akhir</label>
+                                <label for="tanggal_akhir" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Akhir</label>
                                 <input type="date" id="tanggal_akhir" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Satker Pengelola</label>
+                                <label for="main_satker" class="block text-sm font-medium text-gray-700 mb-1">Satker Pengelola</label>
                                 <select id="main_satker" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white">
                                     <option value="">-- Pilih Satker --</option>
                                 </select>
                             </div>
                             <div id="container_pnbp">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nilai PNBP (Rp)</label>
+                                <label for="pnbp" class="block text-sm font-medium text-gray-700 mb-1">Nilai PNBP (Rp)</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium text-sm">Rp</span>
                                     <input type="text" id="pnbp" placeholder="0" 
@@ -185,11 +192,11 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div id="container_panjang">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Panjang (Meter)</label>
+                                <label for="panjang" class="block text-sm font-medium text-gray-700 mb-1">Panjang (Meter)</label>
                                 <input type="number" step="0.01" id="panjang" placeholder="Misal: 100" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white">
                             </div>
                             <div id="container_lebar">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Lebar (Meter)</label>
+                                <label for="lebar" class="block text-sm font-medium text-gray-700 mb-1">Lebar (Meter)</label>
                                 <input type="number" step="0.01" id="lebar" placeholder="Misal: 5" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent bg-gray-50 hover:bg-white">
                             </div>
                         </div>
@@ -233,14 +240,14 @@
                         </div>
 
                         <div class="mt-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen Pendukung</label>
+                            <label for="dokumen_pendukung" class="block text-sm font-medium text-gray-700 mb-1">Dokumen Pendukung</label>
                             <input id="dokumen_pendukung" type="file" name="dokumen[]" multiple class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-accent hover:file:bg-blue-100" />
                             <div id="existing-dokumen-list" class="mt-3 space-y-2"></div>
                             <div id="dokumen-list" class="mt-3 space-y-2"></div>
                         </div>
 
                         <div class="mt-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload File Geospasial (.geojson, .kml, .kmz)</label>
+                            <label for="geojson_file" class="block text-sm font-medium text-gray-700 mb-2">Upload File Geospasial (.geojson, .kml, .kmz)</label>
                             <input id="geojson_file" type="file" accept=".geojson,application/geo+json,.kml,.kmz" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100" />
                             <div id="file-name-display" class="text-xs text-green-600 font-medium mt-2 hidden flex items-center gap-1">
                                 <i class="ph-fill ph-check-circle"></i> <span id="file-name-text"></span> siap diunggah.

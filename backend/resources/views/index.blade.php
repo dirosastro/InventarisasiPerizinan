@@ -4,8 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Dashboard Monitoring Perizinan Pemanfaatan Bagian Jalan Nasional di Provinsi Nusa Tenggara Barat secara terintegrasi dan real-time.">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-    <title>Siperjalan - Sistem Informasi Perizinan Jalan</title>
+    <title>Beranda - Simpanan (Sistem Informasi Perizinan Jalan)</title>
+
+    <!-- Resource Hints & Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,11 +35,11 @@
     </script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"></noscript>
 
     <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
     <style>
         .hero-overlay {
@@ -98,9 +105,9 @@
     <nav class="nav-sticky bg-white py-4 px-6 border-b border-gray-100">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo Siperjalan" class="h-12 w-auto">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Simpanan BPJN NTB" width="48" height="48" class="h-12 w-auto">
                 <div class="flex flex-col leading-tight border-l pl-4 border-gray-200">
-                    <span class="font-bold text-xl text-bps-navy tracking-tight uppercase">Siperjalan</span>
+                    <span class="font-bold text-xl text-bps-navy tracking-tight uppercase">Simpanan</span>
                     <span class="text-[10px] text-bps-gray font-semibold tracking-widest uppercase">Sistem Informasi
                         Perizinan Jalan</span>
                 </div>
@@ -120,8 +127,8 @@
             </div>
 
             <!-- MOBILE MENU BUTTON -->
-            <button id="mobile-menu-btn" class="lg:hidden text-bps-navy p-2 focus:outline-none">
-                <i class="ph ph-list text-3xl"></i>
+            <button id="mobile-menu-btn" aria-label="Toggle navigation menu" aria-expanded="false" class="lg:hidden text-bps-navy p-2 focus:outline-none">
+                <i class="ph ph-list text-3xl" aria-hidden="true"></i>
             </button>
         </div>
 
@@ -143,7 +150,7 @@
 
     <!-- HERO SECTION -->
     <section class="relative min-h-[calc(100vh-80px)] flex flex-col justify-center items-center overflow-hidden py-20">
-        <img src="{{ asset('img/back_login.png') }}" alt="Background" class="absolute inset-0 w-full h-full object-cover">
+        <img src="{{ asset('img/back_login.png') }}" alt="Latar belakang pemandangan jalan" width="1920" height="1080" fetchpriority="high" class="absolute inset-0 w-full h-full object-cover">
         <div class="absolute inset-0 hero-overlay"></div>
 
         <div class="max-w-7xl mx-auto px-6 w-full relative z-10 text-center">
@@ -159,8 +166,8 @@
                 <div
                     class="bg-white p-2 rounded-lg shadow-2xl flex flex-col md:flex-row items-center gap-2 max-w-2xl mx-auto animate-in delay-2">
                     <div class="flex-1 w-full px-4 flex items-center gap-3">
-                        <i class="ph ph-magnifying-glass text-bps-gray text-xl"></i>
-                        <input type="text" id="hero-search-input" list="search-suggestions" placeholder="Cari data perizinan atau pemohon..."
+                        <i class="ph ph-magnifying-glass text-bps-gray text-xl" aria-hidden="true"></i>
+                        <input type="text" id="hero-search-input" aria-label="Cari data perizinan atau pemohon" list="search-suggestions" placeholder="Cari data perizinan atau pemohon..."
                             class="w-full py-3 focus:outline-none text-gray-700 font-medium">
                         <datalist id="search-suggestions"></datalist>
                     </div>
@@ -404,7 +411,9 @@
 
             playTyping();
         });
-    </script>
+    </script>    <!-- Include Customer Service Widget -->
+    @include('components.customer_service_widget')
+
 </body>
 
 </html>

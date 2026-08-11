@@ -15,7 +15,7 @@ $permit = Perizinan::with('lokasi')->first();
 
 if ($permit) {
     $ruasJalan = $permit->lokasi->pluck('nama_ruas_jalan')->unique()->implode(', ') ?: '-';
-    $pesan = "🔔 *TES SISTEM SIPERJALAN (DATA ASLI)*\n\n" .
+    $pesan = "🔔 *TES SISTEM SIMPANAN (DATA ASLI)*\n\n" .
              "Halo *{$permit->pemohon}*,\n\n" .
              "Ini adalah pesan tes menggunakan data dari database:\n" .
              "📌 *Pemohon:* {$permit->pemohon}\n" .
@@ -24,7 +24,7 @@ if ($permit) {
              "📌 *Nomor Izin:* {$permit->nomor_izin}\n\n" .
              "Jika Anda menerima pesan ini, berarti data sudah berhasil ditarik! ✅";
 } else {
-    $pesan = "🔔 *TES SISTEM SIPERJALAN*\n\n" .
+    $pesan = "🔔 *TES SISTEM SIMPANAN*\n\n" .
              "Halo *[NAMA PEMOHON]*,\n\n" .
              "Ini adalah pesan tes (Data Belum Ada di DB):\n" .
              "📌 *Pemohon:* [NAMA PEMOHON]\n" .
