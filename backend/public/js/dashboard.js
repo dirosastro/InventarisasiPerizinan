@@ -80,7 +80,9 @@ function updateKPIs(data) {
     
     let totalPanjang = 0;
     data.forEach(i => {
-        if (i.lokasi) {
+        if (i.panjang && parseFloat(i.panjang) > 0) {
+            totalPanjang += parseFloat(i.panjang) / 1000;
+        } else if (i.lokasi) {
             i.lokasi.forEach(l => {
                 const s = parseSta(l.sta_awal);
                 const e = parseSta(l.sta_akhir);
