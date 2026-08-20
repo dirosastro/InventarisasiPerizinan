@@ -72,7 +72,7 @@ class PerizinanController extends Controller
                 $tglAkhir = \Carbon\Carbon::parse($item->tanggal_akhir)->startOfDay();
                 if ($tglAkhir->lt($now)) {
                     $item->status = 'kadaluarsa';
-                } elseif ($tglAkhir->diffInDays($now) <= 90) {
+                } elseif ($now->diffInDays($tglAkhir, false) <= 90) {
                     $item->status = 'hampir_habis';
                 } else {
                     $item->status = 'aktif';

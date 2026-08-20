@@ -615,7 +615,7 @@ fetch((window.API_BASE_URL || '') + '/data/Peta%20Jalan%20Nasional.geojson')
                                 </div>
                             </div>
                             <div class="mt-3 pt-3 border-t border-gray-100">
-                                <p class="text-[10px] text-gray-500 mb-2">Ajukan Izin lewat aplikasi berikut:</p>
+                                <p class="text-[10px] text-gray-500 mb-2">Ajukan via OKSIP untuk Perorangan/Lembaga Pemerintah<br>Ajukan via OSS untuk Badan Usaha</p>
                                 <div class="flex gap-2">
                                 <a href="https://oksip.pu.go.id/" target="_blank" rel="noopener noreferrer" class="bg-blue-600 text-white text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 hover:bg-blue-700 transition-colors no-underline" style="color: white; text-decoration: none;">
                                     <i class="ph ph-arrow-square-out"></i> OKSIP
