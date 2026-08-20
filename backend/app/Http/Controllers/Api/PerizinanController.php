@@ -90,7 +90,7 @@ class PerizinanController extends Controller
     public function uploadTemp(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|max:10240',
+            'file' => 'required|file',
             'nomor_izin' => 'required|string',
             'pemohon' => 'required|string',
         ]);
@@ -147,7 +147,7 @@ class PerizinanController extends Controller
             'lebar'          => 'nullable|numeric',
             'geojson'        => 'nullable|string',
             'dokumen'         => 'nullable|array',
-            'dokumen.*'       => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'dokumen.*'       => 'file|mimes:pdf,jpg,jpeg,png',
             'uploaded_dokumen' => 'nullable|string', // JSON string metadata
             'lokasi'         => 'required|string', // Karena dikirim via FormData, ini akan di-decode
         ]);
