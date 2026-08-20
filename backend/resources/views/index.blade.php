@@ -303,7 +303,37 @@
                         document.getElementById('kpi-total').textContent = data.length.toLocaleString('id-ID') + '+';
                         document.getElementById('kpi-aktif').textContent = data.filter(i => i.status === 'aktif').length.toLocaleString('id-ID');
                         const pnbp = data.reduce((sum, i) => sum + (parseFloat(i.pnbp) || 0), 0);
-                        document.getElementById('kpi-pnbp').textContent = 'Rp ' + (pnbp / 1000000).toLocaleString('id-ID', {maximumFractionDigits: 1}) + ' Juta';
+                        let formattedPnbp = '';
+                        if (pnbp >= 1000000000) {
+                            formattedPnbp = 'Rp ' + (pnbp / 1000000000).toLocaleString('id-ID', {minimumFractionDigits: 1, maximumFractionDigits: 2}) + ' Miliar';
+                        } else if (pnbp >= 1000000) {
+                            formattedPnbp = 'Rp ' + (pnbp / 1000000).toLocaleString('id-ID', {minimumFractionDigits: 1, maximumFractionDigits: 2}) + ' Juta';
+                        } else {
+                            formattedPnbp = 'Rp ' + pnbp.toLocaleString('id-ID');
+                        }
+                        document.getElementById('kpi-pnbp').textContent = formattedPnbp;
+
+                        // Calculate and Update Jalan Dimanfaatkan
+                        const parseSta = (sta) => {
+                            if (!sta) return null;
+                            const match = sta.match(/(\d+)\+(\d+)/);
+                            if (match) return parseInt(match[1]) + (parseInt(match[2]) / 1000);
+                            return null;
+                        };
+                        let totalPanjang = 0;
+                        data.forEach(i => {
+                            if (i.panjang && parseFloat(i.panjang) > 0) {
+                                totalPanjang += parseFloat(i.panjang) / 1000;
+                            } else if (i.lokasi) {
+                                i.lokasi.forEach(l => {
+                                    const s = parseSta(l.sta_awal);
+                                    const e = parseSta(l.sta_akhir);
+                                    if (s !== null && e !== null) totalPanjang += Math.abs(e - s);
+                                });
+                            }
+                        });
+                        document.getElementById('kpi-panjang').textContent = totalPanjang.toLocaleString('id-ID', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + ' Km';
+
 
                         // Prepare Autocomplete Data
                         const allSuggestions = [];

@@ -68,7 +68,7 @@ Route::prefix('api')->group(function () {
         $wa = new \App\Services\WhatsAppService();
         $name = $request->name ?: 'Visitor';
         
-        $messageText = "*Pesan Baru dari Website Siperjalan*\n\nHalo {$name}, terima kasih telah menghubungi kami.\nPesan Anda:\n\"{$request->message}\"\n\nTunggu sebentar ya, Admin kami akan segera membalas pesan Anda di chat ini.";
+        $messageText = "*Pesan Baru dari Website Simpanan*\n\nHalo {$name}, terima kasih telah menghubungi kami.\nPesan Anda:\n\"{$request->message}\"\n\nTunggu sebentar ya, Admin kami akan segera membalas pesan Anda di chat ini.";
         
         $result = $wa->sendMessage($request->number, $messageText);
 
