@@ -334,18 +334,71 @@ function renderPerizinanOnMap() {
         let allFeatures = [];
         allPerizinanData.forEach(item => {
             // 1. Process GeoJSON if exists
-            if (item.geojson) {
+            const hasGeoJSON = !!item.geojson;
+
+            // Helper: ambil titik referensi dari geometry
+            const getRefPoint = (geometry) => {
+                try {
+                    if (geometry.type === 'Point') return turf.point(geometry.coordinates);
+                    if (geometry.type === 'LineString') {
+                        const mid = Math.floor(geometry.coordinates.length / 2);
+                        return turf.point(geometry.coordinates[mid]);
+                    }
+                    if (geometry.type === 'MultiLineString') {
+                        const line = geometry.coordinates[0];
+                        return turf.point(line[Math.floor(line.length / 2)]);
+                    }
+                    return turf.centroid({ type: 'Feature', geometry });
+                } catch (e) { return null; }
+            };
+
+            // Helper: cari lokasi user terdekat dari sebuah titik
+            const findNearestLokasi = (refPoint, lokasiList) => {
+                if (!refPoint || !lokasiList || lokasiList.length === 0) return lokasiList ? lokasiList[0] : null;
+                let best = null;
+                let minDist = Infinity;
+                lokasiList.forEach(loc => {
+                    // Cari segmen jalan nasional yang cocok dengan nama ruas lokasi ini
+                    const segs = nationalRoadsData.features.filter(f => {
+                        const name = (f.properties['Nama Ruas'] || f.properties.LINK_NAME || '').toString().trim().toUpperCase();
+                        return loc.nama_ruas_jalan && loc.nama_ruas_jalan.trim().toUpperCase() === name;
+                    });
+                    segs.forEach(seg => {
+                        try {
+                            // Flatten MultiLineString ke array koordinat biasa untuk kompatibilitas turf
+                            let lineSeg = seg;
+                            if (seg.geometry.type === 'MultiLineString') {
+                                lineSeg = turf.lineString(seg.geometry.coordinates.flat(1));
+                            }
+                            const dist = turf.pointToLineDistance(refPoint, lineSeg, { units: 'kilometers' });
+                            if (dist < minDist) { minDist = dist; best = loc; }
+                        } catch (e) { }
+                    });
+                });
+                return best || lokasiList[0];
+            };
+
+            // Helper: dapatkan info jalan nasional dari nama ruas
+            const getRoadInfo = (ruasName) => {
+                if (!ruasName) return null;
+                return nationalRoadsData.features.find(f => {
+                    const name = (f.properties['Nama Ruas'] || f.properties.LINK_NAME || '').toString().trim().toUpperCase();
+                    return ruasName.trim().toUpperCase() === name;
+                }) || null;
+            };
+
+            // ── JALUR 1: Ada GeoJSON → gunakan geometry dari file, deteksi ruas per fitur ──
+            if (hasGeoJSON) {
                 try {
                     const parsedGeo = typeof item.geojson === 'string' ? JSON.parse(item.geojson) : item.geojson;
                     const features = parsedGeo.features || [parsedGeo];
                     features.forEach(feat => {
                         if (!feat.geometry) return;
 
-                        const roadName = item.lokasi && item.lokasi.length > 0 ? item.lokasi[0].nama_ruas_jalan : null;
-                        const roadInfo = roadName ? nationalRoadsData.features.find(f => {
-                            const name = f.properties['Nama Ruas'] || f.properties.LINK_NAME || '';
-                            return name.toString().trim().toUpperCase() === roadName.trim().toUpperCase();
-                        }) : null;
+                        // Tentukan lokasi user yang paling cocok untuk fitur ini (berdasarkan jarak spasial)
+                        const refPoint = getRefPoint(feat.geometry);
+                        const matchedLokasi = findNearestLokasi(refPoint, item.lokasi);
+                        const roadInfo = matchedLokasi ? getRoadInfo(matchedLokasi.nama_ruas_jalan) : null;
 
                         feat.properties = {
                             id: item.id,
@@ -355,7 +408,7 @@ function renderPerizinanOnMap() {
                             raw_jenis_izin: item.jenis_izin,
                             jenis_izin: (item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin,
                             satker_id: item.satker_id,
-                            ruas_jalan: item.lokasi ? item.lokasi.map(l => l.nama_ruas_jalan).join(', ') : '-',
+                            ruas_jalan: matchedLokasi ? matchedLokasi.nama_ruas_jalan : '-',
                             status: item.status,
                             icon: feat.properties.icon || item.icon,
                             masa_berlaku_awal: item.tanggal_terbit,
@@ -363,9 +416,9 @@ function renderPerizinanOnMap() {
                             pnbp: item.pnbp || 0,
                             ppk: roadInfo ? roadInfo.properties.PPK : '-',
                             panjang_ruas: roadInfo ? turf.length(roadInfo, { units: 'kilometers' }).toFixed(2) : 0,
-                            panjang_dimanfaatkan: turf.length(feat, { units: 'kilometers' }).toFixed(2),
-                            sta_awal: item.lokasi && item.lokasi.length > 0 ? item.lokasi[0].sta_awal : '-',
-                            sta_akhir: item.lokasi && item.lokasi.length > 0 ? item.lokasi[0].sta_akhir : '-',
+                            panjang_dimanfaatkan: (() => { try { return turf.length(feat, { units: 'kilometers' }).toFixed(2); } catch (e) { return 0; } })(),
+                            sta_awal: matchedLokasi ? (matchedLokasi.sta_awal || '-') : '-',
+                            sta_akhir: matchedLokasi ? (matchedLokasi.sta_akhir || '-') : '-',
                             panjang: item.panjang || null,
                             lebar: item.lebar || null,
                             dokumen: item.dokumen || [],
@@ -373,156 +426,120 @@ function renderPerizinanOnMap() {
                         };
                         allFeatures.push(feat);
 
-                        // Add boundary markers if LineString
+                        // Penanda batas jika LineString
                         if (feat.geometry.type === 'LineString') {
                             const coords = feat.geometry.coordinates;
                             if (coords.length >= 2) {
-                                allFeatures.push({
-                                    type: 'Feature',
-                                    geometry: { type: 'Point', coordinates: coords[0] },
-                                    properties: { ...feat.properties, is_boundary: true, label: 'Titik Awal' }
-                                });
-                                allFeatures.push({
-                                    type: 'Feature',
-                                    geometry: { type: 'Point', coordinates: coords[coords.length - 1] },
-                                    properties: { ...feat.properties, is_boundary: true, label: 'Titik Akhir' }
-                                });
+                                allFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: coords[0] }, properties: { ...feat.properties, is_boundary: true, label: 'Titik Awal' } });
+                                allFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: coords[coords.length - 1] }, properties: { ...feat.properties, is_boundary: true, label: 'Titik Akhir' } });
                             }
                         }
                     });
                 } catch (e) {
                     console.error("Invalid GeoJSON for permit ID", item.id, e);
                 }
-            }
 
-            // 2. Process locations with coordinates (Snap to Road)
-            if (item.lokasi && item.lokasi.length > 0) {
+            // ── JALUR 2: Tidak ada GeoJSON → proses per-lokasi menggunakan STA/nama ruas ──
+            } else if (item.lokasi && item.lokasi.length > 0) {
                 item.lokasi.forEach(loc => {
                     const coordsAwal = parseCoordinates(loc.sta_awal);
                     const coordsAkhir = parseCoordinates(loc.sta_akhir);
 
-                    if (coordsAwal && coordsAkhir) {
-                        const searchName = String(loc.nama_ruas_jalan || '').trim().toUpperCase();
-                        const startPt = turf.point([coordsAwal[1], coordsAwal[0]]);
-                        const endPt = turf.point([coordsAkhir[1], coordsAkhir[0]]);
+                    // Cari segmen jalan yang cocok dengan nama ruas ini
+                    const searchName = String(loc.nama_ruas_jalan || '').trim().toUpperCase();
+                    const roadSegments = nationalRoadsData.features.filter(f => {
+                        const name = f.properties['Nama Ruas'] || f.properties.LINK_NAME || '';
+                        return name.toString().trim().toUpperCase() === searchName;
+                    });
 
-                        // Temukan semua segmen jalan dengan nama yang sama
-                        const roadSegments = nationalRoadsData.features.filter(f => {
-                            const name = f.properties['Nama Ruas'] || f.properties.LINK_NAME || '';
-                            return name.toString().trim().toUpperCase() === searchName;
-                        });
-
-                        let roadFeature = null;
-                        if (roadSegments.length > 0) {
-                            // Cari segmen yang paling dekat dengan titik awal
+                    let roadFeature = null;
+                    if (roadSegments.length > 0) {
+                        if (coordsAwal) {
+                            const startPt = turf.point([coordsAwal[1], coordsAwal[0]]);
                             let minDistance = Infinity;
                             roadSegments.forEach(seg => {
                                 try {
-                                    const dist = turf.pointToLineDistance(startPt, seg);
-                                    if (dist < minDistance) {
-                                        minDistance = dist;
-                                        roadFeature = seg;
-                                    }
+                                    let lineSeg = seg;
+                                    if (seg.geometry.type === 'MultiLineString') lineSeg = turf.lineString(seg.geometry.coordinates.flat(1));
+                                    const dist = turf.pointToLineDistance(startPt, lineSeg);
+                                    if (dist < minDistance) { minDistance = dist; roadFeature = seg; }
                                 } catch (e) { }
                             });
+                        } else {
+                            roadFeature = roadSegments[0];
                         }
+                    }
 
-                        const commonProps = {
-                            id: item.id,
-                            type: 'izin',
-                            no_izin: item.nomor_izin,
-                            pemohon: item.pemohon,
-                            raw_jenis_izin: item.jenis_izin,
-                            jenis_izin: (item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin,
-                            satker_id: item.satker_id,
-                            ruas_jalan: loc.nama_ruas_jalan,
-                            status: item.status,
-                            icon: item.icon,
-                            masa_berlaku_awal: item.tanggal_terbit,
-                            masa_berlaku_akhir: item.tanggal_akhir,
-                            pnbp: item.pnbp || 0,
-                            ppk: roadFeature ? roadFeature.properties.PPK : '-',
-                            panjang_ruas: roadFeature ? turf.length(roadFeature, { units: 'kilometers' }).toFixed(2) : 0,
-                            panjang_dimanfaatkan: 0,
-                            sta_awal: loc.sta_awal || '-',
-                            sta_akhir: loc.sta_akhir || '-',
-                            panjang: item.panjang || null,
-                            lebar: item.lebar || null,
-                            dokumen: item.dokumen || [],
-                            riwayat: item.riwayat || []
-                        };
+                    const commonProps = {
+                        id: item.id,
+                        type: 'izin',
+                        no_izin: item.nomor_izin,
+                        pemohon: item.pemohon,
+                        raw_jenis_izin: item.jenis_izin,
+                        jenis_izin: (item.sub_jenis && item.sub_jenis !== '-') ? item.sub_jenis : item.jenis_izin,
+                        satker_id: item.satker_id,
+                        ruas_jalan: loc.nama_ruas_jalan,
+                        status: item.status,
+                        icon: item.icon,
+                        masa_berlaku_awal: item.tanggal_terbit,
+                        masa_berlaku_akhir: item.tanggal_akhir,
+                        pnbp: item.pnbp || 0,
+                        ppk: roadFeature ? roadFeature.properties.PPK : '-',
+                        panjang_ruas: roadFeature ? turf.length(roadFeature, { units: 'kilometers' }).toFixed(2) : 0,
+                        panjang_dimanfaatkan: 0,
+                        sta_awal: loc.sta_awal || '-',
+                        sta_akhir: loc.sta_akhir || '-',
+                        panjang: item.panjang || null,
+                        lebar: item.lebar || null,
+                        dokumen: item.dokumen || [],
+                        riwayat: item.riwayat || []
+                    };
+
+                    if (coordsAwal && coordsAkhir) {
+                        // Jalur A: Koordinat STA lengkap — snap ke garis jalan
+                        const startPt = turf.point([coordsAwal[1], coordsAwal[0]]);
+                        const endPt = turf.point([coordsAkhir[1], coordsAkhir[0]]);
 
                         if (roadFeature) {
                             try {
                                 let targetLine = roadFeature;
                                 if (roadFeature.geometry.type === 'MultiLineString') {
-                                    const allCoords = roadFeature.geometry.coordinates.flat(1);
-                                    targetLine = turf.lineString(allCoords);
+                                    targetLine = turf.lineString(roadFeature.geometry.coordinates.flat(1));
                                 }
-
                                 const snappedStart = turf.nearestPointOnLine(targetLine, startPt);
                                 const snappedEnd = turf.nearestPointOnLine(targetLine, endPt);
                                 const sliced = turf.lineSlice(snappedStart, snappedEnd, targetLine);
 
                                 if (sliced && sliced.geometry && sliced.geometry.coordinates.length > 1) {
                                     const utilLen = turf.length(sliced, { units: 'kilometers' }).toFixed(2);
-                                    allFeatures.push({
-                                        type: 'Feature',
-                                        geometry: sliced.geometry,
-                                        properties: { ...commonProps, is_utility_line: true, panjang_dimanfaatkan: utilLen }
-                                    });
-
+                                    allFeatures.push({ type: 'Feature', geometry: sliced.geometry, properties: { ...commonProps, is_utility_line: true, panjang_dimanfaatkan: utilLen } });
                                     const permitArea = turf.buffer(sliced, 4, { units: 'meters' });
-                                    allFeatures.push({
-                                        type: 'Feature',
-                                        geometry: permitArea.geometry,
-                                        properties: { ...commonProps, panjang_dimanfaatkan: utilLen }
-                                    });
-                                } else {
-                                    throw new Error("Sliced geometry invalid");
-                                }
+                                    allFeatures.push({ type: 'Feature', geometry: permitArea.geometry, properties: { ...commonProps, panjang_dimanfaatkan: utilLen } });
+                                } else { throw new Error("Sliced invalid"); }
                             } catch (err) {
-                                const straightLine = turf.lineString([[coordsAwal[1], coordsAwal[0]], [coordsAkhir[1], coordsAkhir[0]]]);
-                                const fallbackLen = turf.length(straightLine, { units: 'kilometers' }).toFixed(2);
-                                allFeatures.push({
-                                    type: 'Feature',
-                                    geometry: straightLine.geometry,
-                                    properties: { ...commonProps, is_utility_line: true, panjang_dimanfaatkan: fallbackLen }
-                                });
+                                const straight = turf.lineString([[coordsAwal[1], coordsAwal[0]], [coordsAkhir[1], coordsAkhir[0]]]);
+                                allFeatures.push({ type: 'Feature', geometry: straight.geometry, properties: { ...commonProps, is_utility_line: true, panjang_dimanfaatkan: turf.length(straight, { units: 'kilometers' }).toFixed(2) } });
                             }
                         } else {
-                            allFeatures.push({
-                                type: 'Feature',
-                                geometry: {
-                                    type: 'LineString',
-                                    coordinates: [[coordsAwal[1], coordsAwal[0]], [coordsAkhir[1], coordsAkhir[0]]]
-                                },
-                                properties: commonProps
-                            });
+                            allFeatures.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [[coordsAwal[1], coordsAwal[0]], [coordsAkhir[1], coordsAkhir[0]]] }, properties: commonProps });
                         }
 
-                        // Penanda Awal & Akhir
-                        allFeatures.push({
-                            type: 'Feature',
-                            geometry: { type: 'Point', coordinates: [coordsAwal[1], coordsAwal[0]] },
-                            properties: { ...commonProps, is_boundary: true, label: 'Titik Awal' }
-                        });
-                        allFeatures.push({
-                            type: 'Feature',
-                            geometry: { type: 'Point', coordinates: [coordsAkhir[1], coordsAkhir[0]] },
-                            properties: { ...commonProps, is_boundary: true, label: 'Titik Akhir' }
-                        });
+                        allFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [coordsAwal[1], coordsAwal[0]] }, properties: { ...commonProps, is_boundary: true, label: 'Titik Awal' } });
+                        allFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [coordsAkhir[1], coordsAkhir[0]] }, properties: { ...commonProps, is_boundary: true, label: 'Titik Akhir' } });
+
                     } else if (coordsAwal || coordsAkhir) {
+                        // Jalur B: Hanya 1 koordinat
                         const coords = coordsAwal || coordsAkhir;
-                        allFeatures.push({
-                            type: 'Feature',
-                            geometry: { type: 'Point', coordinates: [coords[1], coords[0]] },
-                            properties: {
-                                ...commonProps,
-                                is_utility_line: true,
-                                label: 'Pemanfaatan'
-                            }
-                        });
+                        allFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [coords[1], coords[0]] }, properties: { ...commonProps, is_utility_line: true, label: 'Pemanfaatan' } });
+
+                    } else if (roadFeature) {
+                        // Jalur C: Hanya nama ruas tanpa koordinat → marker di tengah ruas
+                        try {
+                            let coords = roadFeature.geometry.coordinates;
+                            if (roadFeature.geometry.type === 'MultiLineString') coords = coords[0];
+                            const midCoord = coords[Math.floor(coords.length / 2)];
+                            allFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: midCoord }, properties: { ...commonProps, label: loc.nama_ruas_jalan } });
+                        } catch (e) { console.warn('Gagal menempatkan marker ruas', e); }
                     }
                 });
             }
@@ -751,11 +768,25 @@ function loadDataToMap(data = geojsonData) {
                     layer.bringToFront();
                 }
 
-                // Jika geometri bukan Point, kita tambahkan marker di tengah bounds
+                // Jika geometri bukan Point, kita tambahkan marker tepat di jalur (bukan tengah bounds)
                 if (feature.geometry && feature.geometry.type !== 'Point') {
-                    // Pastikan layer memiliki getBounds()
-                    if (typeof layer.getBounds === 'function') {
-                        const center = layer.getBounds().getCenter();
+                    let center = null;
+                    if (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString') {
+                        try {
+                            let coords = feature.geometry.coordinates;
+                            if (feature.geometry.type === 'MultiLineString') coords = coords[0];
+                            if (coords && coords.length > 0) {
+                                const mid = coords[Math.floor(coords.length / 2)];
+                                center = L.latLng(mid[1], mid[0]);
+                            }
+                        } catch (e) { console.error('Error snapping marker to line', e); }
+                    }
+                    
+                    if (!center && typeof layer.getBounds === 'function') {
+                        center = layer.getBounds().getCenter();
+                    }
+
+                    if (center) {
                         const marker = pointToLayerIzin(feature, center);
                         marker.feature = feature; // IMPORTANT for deep linking eachLayer search
                         marker.bindPopup(createPopupContent(feature.properties, center), {
