@@ -657,7 +657,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else if (xhr.status === 0) {
                     handleUploadError(item, 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
                 } else if (xhr.status === 413) {
-                    handleUploadError(item, 'Ukuran file terlalu besar. Maksimum 40MB.');
+                    handleUploadError(item, 'Ukuran file terlalu besar untuk diproses server.');
                 } else if (xhr.status === 419) {
                     handleUploadError(item, 'Sesi telah berakhir. Silakan refresh halaman dan login ulang.');
                 } else if (xhr.status === 401) {

@@ -93,11 +93,10 @@ class PerizinanController extends Controller
         set_time_limit(300);
 
         $request->validate([
-            'file' => 'required|file|max:40960|mimes:pdf,jpg,jpeg,png', // Max 40MB
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png',
             'nomor_izin' => 'required|string',
             'pemohon' => 'required|string',
         ], [
-            'file.max' => 'Ukuran file maksimum 40MB.',
             'file.mimes' => 'Format file harus PDF, JPG, atau PNG.',
         ]);
 
