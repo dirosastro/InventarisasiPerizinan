@@ -89,15 +89,21 @@ class PerizinanController extends Controller
 
     public function uploadTemp(Request $request)
     {
+        // Perpanjang timeout untuk upload ke Google Drive
+        set_time_limit(300);
+
         $request->validate([
-            'file' => 'required|file',
+            'file' => 'required|file|max:40960|mimes:pdf,jpg,jpeg,png', // Max 40MB
             'nomor_izin' => 'required|string',
             'pemohon' => 'required|string',
+        ], [
+            'file.max' => 'Ukuran file maksimum 40MB.',
+            'file.mimes' => 'Format file harus PDF, JPG, atau PNG.',
         ]);
 
         try {
             $file = $request->file('file');
-            $folderName = preg_replace('#[\\/:*?"<>|]#', '_', $request->nomor_izin . ' - ' . $request->pemohon);
+            $folderName = preg_replace('#[\\\\/:*?"<>|]#', '_', $request->nomor_izin . ' - ' . $request->pemohon);
             // Randomize filename for security
             $filename = $request->pemohon . '_' . \Illuminate\Support\Str::random(24) . '.' . $file->getClientOriginalExtension();
             $filePath = $folderName . '/' . $filename;
@@ -107,7 +113,8 @@ class PerizinanController extends Controller
             \Illuminate\Support\Facades\Log::info('Temporary file uploaded to GDrive.', [
                 'username' => auth()->user() ? auth()->user()->email : 'guest',
                 'filepath' => $filePath,
-                'original_name' => $file->getClientOriginalName()
+                'original_name' => $file->getClientOriginalName(),
+                'size_kb' => round($file->getSize() / 1024)
             ]);
 
             $url = $filePath;
@@ -125,7 +132,11 @@ class PerizinanController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            \Log::error('Upload Temp Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'Gagal mengunggah: ' . $e->getMessage()], 500);
         }
     }
 

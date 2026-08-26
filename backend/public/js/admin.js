@@ -654,10 +654,39 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } else {
                         handleUploadError(item, result.message || 'Gagal diproses');
                     }
+                } else if (xhr.status === 0) {
+                    handleUploadError(item, 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+                } else if (xhr.status === 413) {
+                    handleUploadError(item, 'Ukuran file terlalu besar. Maksimum 40MB.');
+                } else if (xhr.status === 419) {
+                    handleUploadError(item, 'Sesi telah berakhir. Silakan refresh halaman dan login ulang.');
+                } else if (xhr.status === 401) {
+                    handleUploadError(item, 'Sesi login telah berakhir. Silakan login ulang.');
+                } else if (xhr.status === 422) {
+                    let msg = 'Data tidak valid.';
+                    try {
+                        const errData = JSON.parse(xhr.responseText);
+                        msg = errData.message || Object.values(errData.errors || {}).flat().join(', ') || msg;
+                    } catch(e) {}
+                    handleUploadError(item, msg);
                 } else {
-                    handleUploadError(item, 'Kesalahan Jaringan / Server');
+                    let serverMsg = '';
+                    try {
+                        const errData = JSON.parse(xhr.responseText);
+                        serverMsg = errData.message || '';
+                    } catch(e) {}
+                    handleUploadError(item, serverMsg || `Kesalahan Server (${xhr.status}). Silakan coba lagi.`);
                 }
             }
+        };
+
+        xhr.onerror = () => {
+            handleUploadError(item, 'Koneksi terputus. Periksa jaringan Anda dan coba lagi.');
+        };
+
+        xhr.timeout = 300000; // 5 menit timeout untuk upload ke Google Drive
+        xhr.ontimeout = () => {
+            handleUploadError(item, 'Upload timeout. File terlalu besar atau koneksi terlalu lambat.');
         };
 
         xhr.open('POST', (window.API_BASE_URL || '') + '/api/perizinan/upload-temp');
